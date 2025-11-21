@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<OutputType>Library</OutputType>
+		<UseWPF>true</UseWPF>
+		<ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+
+		<AssemblyVersion>0.0.0.0000</AssemblyVersion>
+		<FileVersion>0.0.0.0000</FileVersion>
+		<VersionPrefix>0.0.0.00000000</VersionPrefix>
+		<VersionSuffix>debug</VersionSuffix>
+
+		<Authors>Hgnim</Authors>
+		<Company>$(Authors)</Company>
+		<Owners>$(Authors)</Owners>
+		<Product>LuckyGame</Product>
+		<Title>"幸运游戏"桌宠插件</Title>
+		<AssemblyTitle>$(Title)</AssemblyTitle>
+		<Description>LuckyGame</Description>
+		<AssemblyName>VPet.Plugin.LuckyGame</AssemblyName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="VPet-Simulator.Core" Version="1.1.0.52" />
+		<PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.52" />
+	</ItemGroup>
+
+</Project>
