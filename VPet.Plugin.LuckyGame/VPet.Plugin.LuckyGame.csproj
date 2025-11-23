@@ -31,6 +31,12 @@
 		<PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.52" >
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
+		<PackageReference Include="LinePutScript" Version="1.11.9">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="LinePutScript.Localization.WPF" Version="1.0.7">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 </Project>

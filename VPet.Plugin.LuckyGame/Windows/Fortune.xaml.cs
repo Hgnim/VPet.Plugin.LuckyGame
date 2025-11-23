@@ -18,7 +18,8 @@ namespace VPet.Plugin.LuckyGame.Windows
         private bool isSpinning = false;
 
         // 转盘配置
-        private int sectorCount = 8;
+        private int sectorCount => prizes.Length;
+        //批注：可以使用List<>类型以动态调整数量，根据数量调整奖励倍数
         private string[] prizes = { "prize1".Translate(), "prize2".Translate(), "prize3".Translate(), "prize4".Translate(), "prize5".Translate(), "prize6".Translate(), "prize7".Translate(), "prize8".Translate() };
         private Color[] sectorColors = {
             Color.FromRgb(255, 99, 99),    // 红色

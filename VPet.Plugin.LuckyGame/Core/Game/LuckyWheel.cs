@@ -21,7 +21,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 			}
 			internal Action<float> OnAngelChange;
 		}
-		private RoundAngle ra=new();
+		private readonly RoundAngle ra=new();
 		/// <summary>
 		/// 当前角度
 		/// </summary>
@@ -37,14 +37,29 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// 开始转盘
 		/// </summary>
 		/// <param name="rate">每秒计算次数</param>
-		/// <returns></returns>
-		internal async Task<float> StartWheel(ushort rate=24) {
+		/// <param name="MaxSpeed">最大速度，如果留空则根据rate计算</param>
+		/// <returns>返回转盘停下时的角度</returns>
+		internal async Task<float> StartWheel(ushort rate=24,int? MaxSpeed=null) {
 			Random ran = new();
-			float speed = ran.Next(50,100)+ran.NextSingle();
+			int maxSpeed = MaxSpeed is not null and > 24 && MaxSpeed > rate
+								? (int)MaxSpeed 
+								: rate * 2;
+			float speed= ran.Next(rate, maxSpeed) + ran.NextSingle();
 			await Task.Run(() => {
 				while (speed >= 0) {
 					ra.Angle += speed;
-					speed -= ran.NextSingle();
+					if (speed > rate) {
+						speed -= (ran.Next(90, 100 + 1) * 0.01f) * (maxSpeed / (rate/3.5f));
+					}
+					else {
+						if (speed > 1) {
+							speed -= ran.NextSingle() * (speed * 0.01f);
+						}
+						else {
+							speed -= ran.Next(10 + 1) * 0.01f;
+						}
+					}
+						
 					Thread.Sleep((int)(1000 / rate));
 				}
 			});
