@@ -45,7 +45,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 				while (speed >= 0) {
 					ra.Angle += speed;
 					speed -= ran.NextSingle();
-					Thread.Sleep((int)(1000 / 24));
+					Thread.Sleep((int)(1000 / rate));
 				}
 			});
 			return ra.RoAngle;
