@@ -5,6 +5,7 @@
 		<OutputType>Library</OutputType>
 		<UseWPF>true</UseWPF>
 		<ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
 		<AssemblyVersion>0.0.0.0000</AssemblyVersion>
 		<FileVersion>0.0.0.0000</FileVersion>
@@ -22,8 +23,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="VPet-Simulator.Core" Version="1.1.0.52" />
-		<PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.52" />
+		<PackageReference Include="VPet-Simulator.Core" Version="1.1.0.52" >
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.52" >
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 </Project>

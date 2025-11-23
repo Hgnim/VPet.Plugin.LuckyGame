@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using VPet_Simulator.Windows.Interface;
 
-namespace VPet.Plugin.LuckyGame {
+namespace VPet.Plugin.LuckyGame.Core {
 	internal class GameTokenCoin {
 		/// <summary>
 		/// 代币类型
