@@ -13,29 +13,27 @@ namespace VPet.Plugin.LuckyGame.Windows
     public partial class ArcadeExchange : Window
     {
         private double cashBalance { get => MainWindow.GameSavesData.GameSave.Money; }
-        private int gameCoins = 0;
         private GameTokenCoin TokenCoin;
         private IMainWindow MainWindow;
         private Point startPoint;
         private bool isDragging = false;
-        public ArcadeExchange(IMainWindow mainWindow)
+        internal ArcadeExchange(IMainWindow mainWindow, GameTokenCoin gtc)
         {
             MainWindow = mainWindow;
+            TokenCoin = gtc;
             InitializeComponent();
             InitializeArcade();
         }
 
         private void InitializeArcade()
         {
-            TokenCoin = new();
-
             UpdateDisplay();
         }
 
         private void UpdateDisplay()
         {
             CashBalanceText.Text = "¥ {0}".Translate(FormatWithSmartUnits(cashBalance));
-            CoinBalanceText.Text = "🎮 {0}".Translate(gameCoins);
+            CoinBalanceText.Text = "🎮 {0}".Translate(TokenCoin.coin.CoinBlack);
         }
 
         private void TokenExchangeButton_Click(object sender, RoutedEventArgs e)
@@ -101,15 +99,23 @@ namespace VPet.Plugin.LuckyGame.Windows
         private void TokenAmountText_ValueChanged(object sender, Panuon.WPF.SelectedValueChangedRoutedEventArgs<double?> e)
         {
             var amount = TokenAmountText.Value ?? 0;
-            var money = TokenCoin.GetExchangeNeedMoney(GameTokenCoin.Coin.CoinType.coinBlack, (ulong)amount);
-            TokenBlock.Text = "花费 {0:F2} 金钱".Translate(money);
+            if (amount is <= ulong.MaxValue and > 0) {
+                var money = TokenCoin.GetExchangeNeedMoney(GameTokenCoin.Coin.CoinType.coinBlack, (ulong)amount);
+                TokenBlock.Text = "花费 {0:F2} 金钱".Translate(money);
+            }
+            else
+                TokenBlock.Text = "无效输入".Translate();
         }
 
         private void MoneyText_ValueChanged(object sender, Panuon.WPF.SelectedValueChangedRoutedEventArgs<double?> e)
         {
             var amount = MoneyText.Value ?? 0;
-            var money = TokenCoin.GetExchangeGetMoney(GameTokenCoin.Coin.CoinType.coinBlack, (ulong)amount);
-            MoneyBlock.Text = "获得 {0:F2} 金钱".Translate(money);
+            if (amount is <= ulong.MaxValue and > 0) {
+                var money = TokenCoin.GetExchangeGetMoney(GameTokenCoin.Coin.CoinType.coinBlack, (ulong)amount);
+                MoneyBlock.Text = "获得 {0:F2} 金钱".Translate(money);
+            }
+            else
+				MoneyBlock.Text = "无效输入".Translate();
         }
 
         private void DragArea_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)

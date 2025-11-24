@@ -76,7 +76,7 @@
                                                 FontSize="12" Padding="8" MinWidth="50"
                                                 Background="#FF555555" Foreground="#FFFFFF"
                                                 Margin="15" ValueChanged="TokenAmountText_ValueChanged"
-                                                Minimum="0"/>
+                                                Minimum="0" Maximum="18446744073709551615"/>
                                 <TextBlock x:Name="TokenBlock" Text="{ll:Str 花费 ? 金钱}" FontSize="12" Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2"
                                         Foreground="#FFFF00FF" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0"/>
                                 <Button Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Content="{ll:Str 兑换}" 
@@ -109,7 +109,7 @@
                                 <pu:NumberInput x:Name="MoneyText" Grid.Column="1" Grid.Row="0" 
                                     FontSize="12" Padding="8" MinWidth="50"
                                     Background="#FF555555" Foreground="#FFFFFF"
-                                    Margin="15" Minimum="0" ValueChanged="MoneyText_ValueChanged"/>
+                                    Margin="15" Minimum="0" ValueChanged="MoneyText_ValueChanged" Maximum="18446744073709551615"/>
                                 <TextBlock Text="{ll:Str 回收数量}" FontSize="14" Grid.Column="0" 
                                    Foreground="{DynamicResource DARKPrimaryText}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="15"
                                    TextBlock.FontWeight="Bold"/>

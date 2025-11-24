@@ -32,12 +32,12 @@ namespace VPet.Plugin.LuckyGame
             {
                 arcadeExchangeWindow.Close();
                 arcadeExchangeWindow = null;
-                arcadeExchangeWindow = new ArcadeExchange(MW);
+                arcadeExchangeWindow = new ArcadeExchange(MW, gtc);
                 arcadeExchangeWindow.Show();
             }
             else
             {
-                arcadeExchangeWindow = new ArcadeExchange(MW);
+                arcadeExchangeWindow = new ArcadeExchange(MW, gtc);
                 arcadeExchangeWindow.Show();
             }
         }
@@ -53,12 +53,12 @@ namespace VPet.Plugin.LuckyGame
             {
                 fortuneWindow.Close();
                 fortuneWindow = null;
-                fortuneWindow = new Fortune(ref gtc);
+                fortuneWindow = new Fortune(gtc);
                 fortuneWindow.Show();
             }
             else
             {
-                fortuneWindow = new Fortune(ref gtc);
+                fortuneWindow = new Fortune(gtc);
                 fortuneWindow.Show();
             }
         }

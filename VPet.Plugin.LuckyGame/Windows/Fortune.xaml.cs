@@ -40,7 +40,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             Color.FromRgb(128, 203, 196)  // 青色
         };
 
-        internal Fortune(ref GameTokenCoin gtc)
+        internal Fortune(GameTokenCoin gtc)
         {
             InitializeComponent();
             InitializeGame();
