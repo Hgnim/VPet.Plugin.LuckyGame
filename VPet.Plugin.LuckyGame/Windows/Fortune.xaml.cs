@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using VPet.Plugin.LuckyGame.Core;
 using VPet.Plugin.LuckyGame.Core.Game;
 
 namespace VPet.Plugin.LuckyGame.Windows
@@ -32,7 +33,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             Color.FromRgb(128, 203, 196)  // 青色
         };
 
-        public Fortune()
+        internal Fortune(ref GameTokenCoin gtc)
         {
             InitializeComponent();
             InitializeGame();

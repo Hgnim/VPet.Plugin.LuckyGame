@@ -65,5 +65,30 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 			});
 			return ra.RoAngle;
 		}
+		ulong? coin;
+		ushort? place,allPlace;
+		/// <summary>
+		/// 押代币
+		/// </summary>
+		/// <param name="Coin">代币数量</param>
+		/// <param name="Place">押点</param>
+		/// <param name="AllPlace">总共押点数量</param>
+		internal void PlaceCoin(ulong Coin,ushort Place,ushort AllPlace) {
+			coin = Coin;
+			place = Place;
+			allPlace = AllPlace;
+		}
+		/// <summary>
+		/// 赢得的代币数量
+		/// </summary>
+		/// <param name="stopPlace">转盘停止点</param>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		internal ulong WinCoin(ushort stopPlace) => 
+			coin is not null && place is not null && allPlace is not null
+				? stopPlace == place 
+					? (ulong)(coin * allPlace) 
+					: 0
+				: throw new InvalidOperationException("存在null值，可能是没有执行PlaceCoin函数");
 	}
 }
