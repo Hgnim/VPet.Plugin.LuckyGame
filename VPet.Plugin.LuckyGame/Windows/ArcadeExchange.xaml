@@ -169,6 +169,42 @@
                             </StackPanel>
                         </Grid>
                     </Border>
+                    
+                    <!-- 代币选择 -->
+                    <Border Grid.Column="1" Grid.Row="1" Background="#FF333333" 
+                        BorderBrush="#FCB6FF" BorderThickness="3"
+                        CornerRadius="8" Margin="5">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="{ll:Str 代币选择}" 
+                                FontSize="20" FontWeight="Bold"
+                                Foreground="#FCB6FF"
+                                HorizontalAlignment="Center" Margin="0,15,0,0"/>
+
+                            <StackPanel Grid.Row="1" Orientation="Vertical" Margin="20">
+                                <ComboBox x:Name="CoinTypeSelect" 
+                                          Background="#FF444444" Foreground="#FFFFFF"
+                                          FontSize="14" Padding="8" Margin="0,10"
+                                          SelectionChanged="CoinTypeSelect_SelectionChanged">
+                                    <!--<ComboBoxItem>{ll:Str 黑色代币}</ComboBoxItem>
+                                    <ComboBoxItem>{ll:Str 蓝色代币}</ComboBoxItem>
+                                    <ComboBoxItem>{ll:Str 绿色代币}</ComboBoxItem>
+                                    <ComboBoxItem>{ll:Str 红色代币}</ComboBoxItem>
+                                    <ComboBoxItem>{ll:Str 白色代币}</ComboBoxItem>-->
+                                </ComboBox>
+                                <TextBlock x:Name="CoinTypeSelect_Lable" Text="{ll:Str 选择代币以显示其汇率}" 
+                                           Foreground="{DynamicResource DARKPrimaryText}" FontSize="14" Margin="0,10,20,10"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="CoinTypeSelect_Lable2" Text="{ll:Str 选择代币以显示其回收手续费}" 
+                                           Foreground="{DynamicResource DARKPrimaryText}" FontSize="14" Margin="0,10,20,10"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
         </Grid>

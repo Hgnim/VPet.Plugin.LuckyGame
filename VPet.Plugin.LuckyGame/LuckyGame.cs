@@ -18,7 +18,8 @@ namespace VPet.Plugin.LuckyGame
 		public override string PluginName => "LuckyGame";
         public override void LoadPlugin()
         {
-            gtc = new GameTokenCoin();
+			DataSave.Read(MW, out GameTokenCoin.GameTokenCoin_Args gtcArg);
+			gtc = new GameTokenCoin(gtcArg);
         }
 
         private void TokenExchangeMenu_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -98,5 +99,14 @@ namespace VPet.Plugin.LuckyGame
                 MessageBoxX.Show("DIY列表加载错误{0}".Translate(ex.Message), "错误".Translate());
             }
         }
+
+		public override void Save() {
+            DataSave.Save(MW, gtc);
+			base.Save();
+		}
+		public override void EndGame() {
+            DataSave.Save(MW, gtc);
+			base.EndGame();
+		}
     }
 }

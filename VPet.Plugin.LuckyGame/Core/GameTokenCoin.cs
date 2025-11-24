@@ -1,6 +1,5 @@
-﻿using System;
-using System.Net.Mime;
-using System.Windows.Controls;
+﻿using LinePutScript.Localization.WPF;
+using System.Drawing;
 using VPet_Simulator.Windows.Interface;
 
 namespace VPet.Plugin.LuckyGame.Core {
@@ -21,6 +20,40 @@ namespace VPet.Plugin.LuckyGame.Core {
 			internal enum CoinType {
 				coinBlack, coinBlue, coinGreen, coinRed, coinWhite
 			}
+			/// <summary>
+			/// 对应CoinType的代币颜色
+			/// </summary>
+			internal static readonly Color[] CoinColor =
+				[
+					Color.Black,
+					Color.Blue,
+					Color.Green,
+					Color.Red,
+					Color.White,
+				];
+			/// <summary>
+			/// 每个代币对用户显示的名称
+			/// </summary>
+			internal static readonly string[] CoinName =
+				[
+					"黑色代币".Translate(),
+					"蓝色代币".Translate(),
+					"绿色代币".Translate(),
+					"红色代币".Translate(),
+					"白色代币".Translate(),
+				];
+			/// <summary>
+			/// 每个代币的键名
+			/// </summary>
+			internal static readonly string[] CoinKey =
+				[
+					"BlackCoin",
+					"BlueCoin",
+					"GreenCoin",
+					"RedCoin",
+					"WhiteCoin",
+				];
+
 			private ulong coinBlack;
 			private ulong coinBlue;
 			private ulong coinGreen;
@@ -62,9 +95,9 @@ namespace VPet.Plugin.LuckyGame.Core {
 				get => coinBlue;
 			}
 			/// <inheritdoc cref="er_coinBlack"/>
-			internal uint er_coinBlue = 10;
+			internal uint er_coinBlue = 100;
 			/// <inheritdoc cref="ef_coinBlack"/>
-			internal float ef_coinBlue = .08f;
+			internal float ef_coinBlue = .05f;
 			/// <summary>
 			/// 代币-绿色
 			/// </summary>
@@ -78,9 +111,9 @@ namespace VPet.Plugin.LuckyGame.Core {
 				get => coinGreen;
 			}
 			/// <inheritdoc cref="er_coinBlack"/>
-			internal uint er_coinGreen = 100;
+			internal uint er_coinGreen = 1_0000;
 			/// <inheritdoc cref="ef_coinBlack"/>
-			internal float ef_coinGreen = .05f;
+			internal float ef_coinGreen = .01f;
 			/// <summary>
 			/// 代币-红色
 			/// </summary>
@@ -94,9 +127,9 @@ namespace VPet.Plugin.LuckyGame.Core {
 				get => coinRed;
 			}
 			/// <inheritdoc cref="er_coinBlack"/>
-			internal uint er_coinRed = 1000;
+			internal uint er_coinRed = 100_0000;
 			/// <inheritdoc cref="ef_coinBlack"/>
-			internal float ef_coinRed = .03f;
+			internal float ef_coinRed = .005f;
 			/// <summary>
 			/// 代币-白色
 			/// </summary>
@@ -110,9 +143,9 @@ namespace VPet.Plugin.LuckyGame.Core {
 				get => coinWhite;
 			}
 			/// <inheritdoc cref="er_coinBlack"/>
-			internal uint er_coinWhite = 10000;
+			internal uint er_coinWhite = 1_0000_0000;
 			/// <inheritdoc cref="ef_coinBlack"/>
-			internal float ef_coinWhite = .01f;
+			internal float ef_coinWhite = .00025f;
 
 			internal Coin(ulong[] coins, uint[] erCoin, float[] efCoin) {
 				if (coins != null) {
@@ -147,11 +180,18 @@ namespace VPet.Plugin.LuckyGame.Core {
 		}
 		internal Coin coin;
 		/// <summary>
+		/// 当前/默认 使用的代币类型
+		/// </summary>
+		internal Coin.CoinType defCoinType;
+		/// <summary>
 		/// 代币兑换<br/>
 		/// 在原基础上更变代币的数量，并对桌宠钱进行相应的增减
 		/// </summary>
-		/// <param name="cType">代币类型</param>
 		/// <param name="value">更变的值</param>
+		/// <param name="cType">
+		/// 代币类型<br/>
+		/// 留空或为null则使用默认值
+		/// </param>
 		/// <returns>
 		/// 返回值：<br/>
 		/// 0：成功<br/>
@@ -160,7 +200,8 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 3：代币不足兑换桌宠钱<br/>
 		/// 4：value参数值等于0<br/>
 		/// </returns>
-		internal byte ExchangeCoin(IMainWindow MW, Coin.CoinType cType,long value) {
+		internal byte ExchangeCoin(IMainWindow MW, long value, Coin.CoinType? cType=null) {
+			cType ??= defCoinType;
 			byte ret = 1;
 			ulong action(ulong c,uint er,float ef,long val) {
 				if (val > 0) {
@@ -209,9 +250,13 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// <summary>
 		/// 获取兑换指定数量代币所需桌宠币数
 		/// </summary>
-		/// <param name="cType">代币类型</param>
 		/// <param name="coinTarget">目标数量的代币</param>
-		internal double GetExchangeNeedMoney(Coin.CoinType cType,ulong coinTarget) {
+		/// <param name="cType">
+		/// 代币类型<br/>
+		/// 留空或为null则使用默认值
+		/// </param>
+		internal double GetExchangeNeedMoney(ulong coinTarget, Coin.CoinType? cType=null) {
+			cType ??= defCoinType;
 			static ulong action(ulong c,uint er) => c * er;
 			return cType switch {
 				Coin.CoinType.coinBlack => action(coinTarget, coin.er_coinBlack),
@@ -225,9 +270,13 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// <summary>
 		/// 获取将指定数量的代币兑换为桌宠币后可获得的金额
 		/// </summary>
-		/// <param name="cType">代币类型</param>
 		/// <param name="coinTarget">目标数量的代币</param>
-		internal double GetExchangeGetMoney(Coin.CoinType cType,ulong coinTarget) {
+		/// <param name="cType">
+		/// 代币类型<br/>
+		/// 留空或为null则使用默认值
+		/// </param>
+		internal double GetExchangeGetMoney(ulong coinTarget, Coin.CoinType? cType=null) {
+			cType ??= defCoinType;
 			static double action(ulong c, uint er, float ef) => (c * er) - ((c * er) * ef);
 			return cType switch {
 				Coin.CoinType.coinBlack => action(coinTarget, coin.er_coinBlack, coin.ef_coinBlack),
@@ -240,10 +289,69 @@ namespace VPet.Plugin.LuckyGame.Core {
 		}
 
 		/// <summary>
+		/// 获取指定代币的汇率
+		/// </summary>
+		/// <param name="cType">
+		/// 代币类型<br/>
+		/// 留空或为null则使用默认值
+		/// </param>
+		internal uint GetCoinExchangeRate(Coin.CoinType? cType=null) {
+			cType ??= defCoinType;
+			return cType switch {
+				Coin.CoinType.coinBlack => coin.er_coinBlack,
+				Coin.CoinType.coinBlue => coin.er_coinBlue,
+				Coin.CoinType.coinGreen => coin.er_coinGreen,
+				Coin.CoinType.coinRed => coin.er_coinRed,
+				Coin.CoinType.coinWhite => coin.er_coinWhite,
+				_ => 0,
+			};
+		}
+		/// <summary>
+		/// 获取指定代币的兑换手续费比例
+		/// </summary>
+		/// <param name="cType">
+		/// 代币类型<br/>
+		/// 留空或为null则使用默认值
+		/// </param>
+		internal float GetCoinExchangeFee(Coin.CoinType? cType=null) {
+			cType ??= defCoinType;
+			return cType switch {
+				Coin.CoinType.coinBlack => coin.ef_coinBlack,
+				Coin.CoinType.coinBlue => coin.ef_coinBlue,
+				Coin.CoinType.coinGreen => coin.ef_coinGreen,
+				Coin.CoinType.coinRed => coin.ef_coinRed,
+				Coin.CoinType.coinWhite => coin.ef_coinWhite,
+				_ => -1,
+			};
+		}
+
+		/// <summary>
+		/// 获取指定代币的数量
+		/// </summary>
+		/// <param name="cType">
+		/// 代币类型<br/>
+		/// 留空或为null则使用默认值
+		/// </param>
+		internal ulong GetCoinAmount(Coin.CoinType? cType=null) {
+			cType ??= defCoinType;
+			return cType switch {
+				Coin.CoinType.coinBlack => coin.CoinBlack,
+				Coin.CoinType.coinBlue => coin.CoinBlue,
+				Coin.CoinType.coinGreen => coin.CoinGreen,
+				Coin.CoinType.coinRed => coin.CoinRed,
+				Coin.CoinType.coinWhite => coin.CoinWhite,
+				_ => 0,
+			};
+		}
+
+		/// <summary>
 		/// 在原基础上更改代币数量
 		/// </summary>
-		/// <param name="cType">代币类型</param>
 		/// <param name="value">更变的值</param>
+		/// <param name="cType">
+		/// 代币类型<br/>
+		/// 留空或为null则使用默认值
+		/// </param>
 		/// <returns>
 		/// 返回值：<br/>
 		/// 0：成功<br/>
@@ -251,7 +359,8 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 2：value参数值等于0<br/>
 		/// 3：代币不足<br/>
 		/// </returns>
-		internal byte ChangeCoin(Coin.CoinType cType,long value) {
+		internal byte ChangeCoin(long value, Coin.CoinType? cType=null) {
+			cType ??= defCoinType;
 			byte ret = 1;
 			ulong action(ulong c,long v) {
 				if (v > 0) {
@@ -308,6 +417,10 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// CoinType排序
 			/// </summary>
 			internal float[] efCoin = null;
+			/// <summary>
+			/// 默认使用的代币类型
+			/// </summary>
+			internal Coin.CoinType defCoiType=Coin.CoinType.coinBlack;
 		}
 		/// <summary>
 		/// 构造
@@ -316,9 +429,9 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 构造函数参数类，留空或为null则使用默认值
 		/// </param>
 		internal GameTokenCoin(GameTokenCoin_Args args=null) {
-			if (args is null)
-				args = new();
+			args ??= new();
 			coin = new(args.coins, args.erCoin, args.efCoin);
+			defCoinType = args.defCoiType;
 		}
 	}
 }

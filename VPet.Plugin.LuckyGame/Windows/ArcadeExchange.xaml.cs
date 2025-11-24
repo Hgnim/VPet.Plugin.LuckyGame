@@ -4,6 +4,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using VPet.Plugin.LuckyGame.Core;
 using VPet_Simulator.Windows.Interface;
@@ -27,14 +28,30 @@ namespace VPet.Plugin.LuckyGame.Windows
 
         private void InitializeArcade()
         {
-            UpdateDisplay();
+            foreach(string name in GameTokenCoin.Coin.CoinName)
+				CoinTypeSelect.Items.Add(name);
+            CoinTypeSelect.SelectedIndex = (int)TokenCoin.defCoinType;
+
+			UpdateDisplay();
         }
 
         private void UpdateDisplay()
         {
             CashBalanceText.Text = "¥ {0}".Translate(FormatWithSmartUnits(cashBalance));
-            CoinBalanceText.Text = "🎮 {0}".Translate(TokenCoin.coin.CoinBlack);
-        }
+            CoinBalanceText.Text = "🎮 {0}".Translate(TokenCoin.GetCoinAmount().ToString("N0"));
+            {
+                System.Drawing.Color dColor = GameTokenCoin.Coin.CoinColor[(int)TokenCoin.defCoinType];
+
+				CoinBalanceText.Foreground = new SolidColorBrush(
+                    Color.FromArgb(
+		                dColor.A,
+		                dColor.R,
+		                dColor.G,
+		                dColor.B
+                        )
+                    );
+            }
+		}
 
         private void TokenExchangeButton_Click(object sender, RoutedEventArgs e)
         {
@@ -64,7 +81,7 @@ namespace VPet.Plugin.LuckyGame.Windows
 
         private void ProcessExchange(double amount)
         {
-            var result = TokenCoin.ExchangeCoin(MainWindow,GameTokenCoin.Coin.CoinType.coinBlack, (long)amount);
+            var result = TokenCoin.ExchangeCoin(MainWindow,(long)amount);
             switch(result)
             {
                 case 0:
@@ -100,8 +117,8 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             var amount = TokenAmountText.Value ?? 0;
             if (amount is <= ulong.MaxValue and > 0) {
-                var money = TokenCoin.GetExchangeNeedMoney(GameTokenCoin.Coin.CoinType.coinBlack, (ulong)amount);
-                TokenBlock.Text = "花费 {0:F2} 金钱".Translate(money);
+                var money = TokenCoin.GetExchangeNeedMoney((ulong)amount);
+                TokenBlock.Text = "花费 {0} 金钱".Translate(money.ToString("N2"));
             }
             else
                 TokenBlock.Text = "无效输入".Translate();
@@ -111,8 +128,8 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             var amount = MoneyText.Value ?? 0;
             if (amount is <= ulong.MaxValue and > 0) {
-                var money = TokenCoin.GetExchangeGetMoney(GameTokenCoin.Coin.CoinType.coinBlack, (ulong)amount);
-                MoneyBlock.Text = "获得 {0:F2} 金钱".Translate(money);
+                var money = TokenCoin.GetExchangeGetMoney((ulong)amount);
+                MoneyBlock.Text = "获得 {0} 金钱".Translate(money.ToString("N2"));
             }
             else
 				MoneyBlock.Text = "无效输入".Translate();
@@ -187,5 +204,16 @@ namespace VPet.Plugin.LuckyGame.Windows
                 return $"{sign}{absValue:F2}";
             }
         }
-    }
+
+		private void CoinTypeSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            TokenCoin.defCoinType = (GameTokenCoin.Coin.CoinType)CoinTypeSelect.SelectedIndex;
+			CoinTypeSelect_Lable.Text = "{0} = {1} 金钱"
+                .Translate(GameTokenCoin.Coin.CoinName[(int)TokenCoin.defCoinType],TokenCoin.GetCoinExchangeRate().ToString("N0"));
+            CoinTypeSelect_Lable2.Text ="回收 {0} 收取 {1}% 手续费"
+                .Translate(GameTokenCoin.Coin.CoinName[(int)TokenCoin.defCoinType],(TokenCoin.GetCoinExchangeFee()*100f).ToString("N3"));
+            TokenAmountText_ValueChanged(null, null);
+			MoneyText_ValueChanged(null, null);
+			UpdateDisplay();
+		}
+	}
 }
