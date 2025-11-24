@@ -12,23 +12,13 @@ namespace VPet.Plugin.LuckyGame
     public class LuckyGame : MainPlugin {
         public Fortune fortuneWindow;
         public ArcadeExchange arcadeExchangeWindow;
+        internal GameTokenCoin gtc;
         public LuckyGame(IMainWindow mainwin) : base(mainwin) {
 		}
 		public override string PluginName => "LuckyGame";
         public override void LoadPlugin()
         {
-            
-        }
-
-        public override void GameLoaded()
-        {
-            var TokenExchangeMenu = new MenuItem
-            {
-                Header = "TokenExchangge".Translate(),
-                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
-            };
-            TokenExchangeMenu.Click += TokenExchangeMenu_Click;
-            MW.Main.ToolBar.MenuFeed.Items.Add(TokenExchangeMenu);
+            gtc = new GameTokenCoin();
         }
 
         private void TokenExchangeMenu_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -63,12 +53,12 @@ namespace VPet.Plugin.LuckyGame
             {
                 fortuneWindow.Close();
                 fortuneWindow = null;
-                fortuneWindow = new Fortune(MW);
+                fortuneWindow = new Fortune(ref gtc);
                 fortuneWindow.Show();
             }
             else
             {
-                fortuneWindow = new Fortune(MW);
+                fortuneWindow = new Fortune(ref gtc);
                 fortuneWindow.Show();
             }
         }
@@ -93,7 +83,14 @@ namespace VPet.Plugin.LuckyGame
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center
                 };
                 fortune.Click += Fortune_Click;
+                var TokenExchangeMenu = new MenuItem
+                {
+                    Header = "TokenExchangge".Translate(),
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                };
+                TokenExchangeMenu.Click += TokenExchangeMenu_Click;
                 menu.Items.Add(fortune);
+                menu.Items.Add(TokenExchangeMenu);
                 MW.Main.ToolBar.MenuDIY.Items.Add(menu);
             }
             catch (Exception ex)

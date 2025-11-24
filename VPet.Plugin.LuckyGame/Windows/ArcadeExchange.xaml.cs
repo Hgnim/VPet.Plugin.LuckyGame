@@ -3,6 +3,7 @@ using Panuon.WPF.UI;
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 using VPet.Plugin.LuckyGame.Core;
 using VPet_Simulator.Windows.Interface;
@@ -11,10 +12,12 @@ namespace VPet.Plugin.LuckyGame.Windows
 {
     public partial class ArcadeExchange : Window
     {
-        private double cashBalance = 0.0;
-        private int gameCoins = 2500;
+        private double cashBalance { get => MainWindow.GameSavesData.GameSave.Money; }
+        private int gameCoins = 0;
         private GameTokenCoin TokenCoin;
         private IMainWindow MainWindow;
+        private Point startPoint;
+        private bool isDragging = false;
         public ArcadeExchange(IMainWindow mainWindow)
         {
             MainWindow = mainWindow;
@@ -25,26 +28,20 @@ namespace VPet.Plugin.LuckyGame.Windows
         private void InitializeArcade()
         {
             TokenCoin = new();
+
             UpdateDisplay();
         }
 
         private void UpdateDisplay()
         {
-            CashBalanceText.Text = $"¥ {cashBalance:N2}";
-            CoinBalanceText.Text = $"🎮 {gameCoins:N0} 枚";
+            CashBalanceText.Text = "¥ {0}".Translate(FormatWithSmartUnits(cashBalance));
+            CoinBalanceText.Text = "🎮 {0}".Translate(gameCoins);
         }
 
-        private void ExchangeButton_Click(object sender, RoutedEventArgs e)
+        private void TokenExchangeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && double.TryParse(button.Tag.ToString(), out double amount))
-            {
-                ProcessExchange(amount);
-            }
-        }
-
-        private void CustomExchangeButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (double.TryParse(CustomAmountText.Text, out double amount) && amount > 0)
+            var amount = TokenAmountText.Value ?? 0;
+            if (amount > 0)
             {
                 ProcessExchange(amount);
             }
@@ -54,9 +51,22 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
         }
 
+        private void MoneyExchangeButton_Click(object sender, RoutedEventArgs e)
+        {
+            var amount = MoneyText.Value ?? 0;
+            if (amount > 0)
+            {
+                ProcessExchange(-amount);
+            }
+            else
+            {
+                ShowMessage("请输入有效的回收金额", "warn");
+            }
+        }
+
         private void ProcessExchange(double amount)
         {
-            var result = TokenCoin.ChangeCoin(MainWindow, GameTokenCoin.CoinType.coinBlack, (long)amount);
+            var result = TokenCoin.ExchangeCoin(MainWindow,GameTokenCoin.Coin.CoinType.coinBlack, (long)amount);
             switch(result)
             {
                 case 0:
@@ -78,19 +88,6 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
         }
 
-        private int GetPackageBonus(double amount)
-        {
-            return amount switch
-            {
-                10 => 10,
-                20 => 20,
-                50 => 100,
-                100 => 300,
-                200 => 800,
-                _ => (int)(amount * 1) // 自定义兑换无额外奖励或基础奖励
-            };
-        }
-
         private void ShowMessage(string message,string title = "info")
         {
             MessageBoxX.Show(message.Translate(),title.Translate());
@@ -101,14 +98,88 @@ namespace VPet.Plugin.LuckyGame.Windows
             this.Close();
         }
 
-        protected override void OnClosed(EventArgs e)
+        private void TokenAmountText_ValueChanged(object sender, Panuon.WPF.SelectedValueChangedRoutedEventArgs<double?> e)
         {
-            base.OnClosed(e);
+            var amount = TokenAmountText.Value ?? 0;
+            var money = TokenCoin.GetExchangeNeedMoney(GameTokenCoin.Coin.CoinType.coinBlack, (ulong)amount);
+            TokenBlock.Text = "花费 {0:F2} 金钱".Translate(money);
         }
 
-        private void GameButton_Click(object sender, RoutedEventArgs e)
+        private void MoneyText_ValueChanged(object sender, Panuon.WPF.SelectedValueChangedRoutedEventArgs<double?> e)
         {
+            var amount = MoneyText.Value ?? 0;
+            var money = TokenCoin.GetExchangeGetMoney(GameTokenCoin.Coin.CoinType.coinBlack, (ulong)amount);
+            MoneyBlock.Text = "获得 {0:F2} 金钱".Translate(money);
+        }
 
+        private void DragArea_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                isDragging = true;
+                startPoint = e.GetPosition(this);
+                ((UIElement)sender).CaptureMouse();
+            }
+        }
+
+        private void DragArea_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (isDragging && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Point currentPoint = e.GetPosition(this);
+
+                // 计算移动距离
+                double deltaX = currentPoint.X - startPoint.X;
+                double deltaY = currentPoint.Y - startPoint.Y;
+
+                // 移动窗口
+                this.Left += deltaX;
+                this.Top += deltaY;
+            }
+        }
+
+        private void DragArea_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            isDragging = false;
+            ((UIElement)sender).ReleaseMouseCapture();
+        }
+
+
+        private string FormatWithSmartUnits(double number)
+        {
+            if (number == 0) return "0";
+
+            double absValue = Math.Abs(number);
+            string sign = number < 0 ? "-" : "";
+
+            if (absValue >= 1000000000) // 十亿
+            {
+                return $"{sign}{(absValue / 1000000000):F1}B";
+            }
+            else if (absValue >= 1000000) // 百万
+            {
+                return $"{sign}{(absValue / 1_000000):F1}M";
+            }
+            else if (absValue >= 10000) // 万（中文习惯）
+            {
+                return $"{sign}{(absValue / 10000):F1}万";
+            }
+            else if (absValue >= 1000) // 千
+            {
+                return $"{sign}{(absValue / 1000):F1}K";
+            }
+            else if (absValue >= 100) // 100-999
+            {
+                return $"{sign}{absValue:F0}";
+            }
+            else if (absValue >= 1) // 1-99
+            {
+                return $"{sign}{absValue:F0}";
+            }
+            else // 小数
+            {
+                return $"{sign}{absValue:F2}";
+            }
         }
     }
 }

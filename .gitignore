@@ -7,4 +7,7 @@
 *.csproj.user
 */.config
 
-LuckyGame/plugin
+*/*.deps.json
+*/*.pdb
+*/runtimes
+*/publish

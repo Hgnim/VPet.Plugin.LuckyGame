@@ -1,8 +1,10 @@
 ﻿using LinePutScript.Localization.WPF;
 using Panuon.WPF.UI;
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -17,11 +19,16 @@ namespace VPet.Plugin.LuckyGame.Windows
         private DispatcherTimer animationTimer;
         private RotateTransform wheelTransform;
         private bool isSpinning = false;
+        private bool isInitialised = false;
+        private Point startPoint;
+        private bool isDragging = false;
+        private ulong coin;
+        private ushort place, allPlace;
 
         // 转盘配置
-        private int sectorCount => prizes.Length;
-        //批注：可以使用List<>类型以动态调整数量，根据数量调整奖励倍数
-        private string[] prizes = { "prize1".Translate(), "prize2".Translate(), "prize3".Translate(), "prize4".Translate(), "prize5".Translate(), "prize6".Translate(), "prize7".Translate(), "prize8".Translate() };
+        private int sectorCount => prizes.Count;
+
+        private List<string> prizes = [];
         private Color[] sectorColors = {
             Color.FromRgb(255, 99, 99),    // 红色
             Color.FromRgb(255, 177, 66),   // 橙色
@@ -56,20 +63,18 @@ namespace VPet.Plugin.LuckyGame.Windows
 
         private void InitializeWheelUI()
         {
+            WheelBorder.Visibility = Visibility.Visible;
+            ControlPanel.Visibility = Visibility.Visible;
+            SettingBorder.Visibility = Visibility.Collapsed;
+
+            luckyWheel.PlaceCoin(coin, place, allPlace);
             // 创建旋转变换
             wheelTransform = new RotateTransform();
             WheelCanvas.RenderTransform = wheelTransform;
             WheelCanvas.RenderTransformOrigin = new Point(0.5, 0.5);
             
-            // 等待Canvas加载完成后再绘制
-            if (WheelCanvas.ActualWidth > 0 && WheelCanvas.ActualHeight > 0)
-            {
-                DrawWheelSectors();
-            }
-            else
-            {
-                WheelCanvas.Loaded += (s, e) => DrawWheelSectors();
-            }
+            DrawWheelSectors();
+            isInitialised = true;
         }
 
         private void DrawWheelSectors()
@@ -85,7 +90,7 @@ namespace VPet.Plugin.LuckyGame.Windows
                 double endAngle = (i + 1) * anglePerSector;
 
                 // 创建扇形
-                Path sector = CreateSector(centerX, centerY, radius, startAngle, endAngle, sectorColors[i]);
+                Path sector = CreateSector(centerX, centerY, radius, startAngle, endAngle, sectorColors[i%8]);
                 WheelCanvas.Children.Add(sector);
 
                 // 创建扇形标签
@@ -199,7 +204,11 @@ namespace VPet.Plugin.LuckyGame.Windows
         private async void SpinButton_Click(object sender, RoutedEventArgs e)
         {
             if (isSpinning) return;
-
+            if (!isInitialised)
+            {
+                MessageBoxX.Show("转盘未初始化，请点击重置后继续".Translate(), "警告".Translate());
+            }
+            isInitialised = false;
             isSpinning = true;
             SpinButton.IsEnabled = false;
             SpinButton.Content = "旋转中...".Translate();
@@ -236,7 +245,16 @@ namespace VPet.Plugin.LuckyGame.Windows
 
         private void ShowResult(string prize)
         {
-            MessageBoxX.Show("恭喜您获得: {0}!".Translate(prize), "抽奖结果".Translate());
+            try
+            {
+                luckyWheel.WinCoin(Convert.ToUInt16(prize));
+                MessageBoxX.Show("恭喜您获得: {0}!".Translate(prize), "抽奖结果".Translate());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("显示结果时出错: {0}".Translate(ex.Message), "错误".Translate(),
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void ResetButton_Click(object sender, RoutedEventArgs e)
@@ -244,6 +262,8 @@ namespace VPet.Plugin.LuckyGame.Windows
             if (!isSpinning)
             {
                 wheelTransform.Angle = 0;
+                luckyWheel.PlaceCoin(coin, place, allPlace);
+                isInitialised = true;
             }
         }
 
@@ -260,6 +280,43 @@ namespace VPet.Plugin.LuckyGame.Windows
                 WheelCanvas.Children.Clear();
                 DrawWheelSectors();
             }
+        }
+
+        private void ExitButton_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            base.Close();
+        }
+
+        private void DragArea_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                isDragging = true;
+                startPoint = e.GetPosition(this);
+                ((UIElement)sender).CaptureMouse();
+            }
+        }
+
+        private void DragArea_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (isDragging && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Point currentPoint = e.GetPosition(this);
+
+                // 计算移动距离
+                double deltaX = currentPoint.X - startPoint.X;
+                double deltaY = currentPoint.Y - startPoint.Y;
+
+                // 移动窗口
+                this.Left += deltaX;
+                this.Top += deltaY;
+            }
+        }
+
+        private void DragArea_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            isDragging = false;
+            ((UIElement)sender).ReleaseMouseCapture();
         }
     }
 }
