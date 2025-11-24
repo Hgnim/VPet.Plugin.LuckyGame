@@ -12,9 +12,11 @@
 		<VersionPrefix>0.0.0.00000000</VersionPrefix>
 		<VersionSuffix>debug</VersionSuffix>
 
-		<Authors>Hgnim</Authors>
+		<Authors>Hgnim, Evian</Authors>
 		<Company>$(Authors)</Company>
 		<Owners>$(Authors)</Owners>
+		<Copyright>Copyright (C) 2025 $(Authors), All rights reserved.</Copyright>
+		<PackageLicenseExpression>GPL-3.0</PackageLicenseExpression>
 		<Product>LuckyGame</Product>
 		<Title>"幸运游戏"桌宠插件</Title>
 		<AssemblyTitle>$(Title)</AssemblyTitle>
@@ -27,6 +29,12 @@
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
 		<PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.52">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="LinePutScript" Version="1.11.9">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="LinePutScript.Localization.WPF" Version="1.0.7">
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
 	</ItemGroup>

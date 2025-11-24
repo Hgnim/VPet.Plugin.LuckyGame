@@ -3,6 +3,7 @@ using Panuon.WPF;
 using Panuon.WPF.UI;
 using System;
 using System.Windows.Controls;
+﻿using VPet.Plugin.LuckyGame.Core;
 using VPet.Plugin.LuckyGame.Windows;
 using VPet_Simulator.Windows.Interface;
 
@@ -62,12 +63,12 @@ namespace VPet.Plugin.LuckyGame
             {
                 fortuneWindow.Close();
                 fortuneWindow = null;
-                fortuneWindow = new Fortune();
+                fortuneWindow = new Fortune(MW);
                 fortuneWindow.Show();
             }
             else
             {
-                fortuneWindow = new Fortune();
+                fortuneWindow = new Fortune(MW);
                 fortuneWindow.Show();
             }
         }
