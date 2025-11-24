@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Mime;
 using System.Windows.Controls;
 using VPet_Simulator.Windows.Interface;
 
@@ -204,6 +205,38 @@ namespace VPet.Plugin.LuckyGame.Core {
 					break;
 			}
 			return ret;
+		}
+		/// <summary>
+		/// 获取兑换指定数量代币所需桌宠币数
+		/// </summary>
+		/// <param name="cType">代币类型</param>
+		/// <param name="coinTarget">目标数量的代币</param>
+		internal double GetExchangeNeedMoney(Coin.CoinType cType,ulong coinTarget) {
+			static ulong action(ulong c,uint er) => c * er;
+			return cType switch {
+				Coin.CoinType.coinBlack => action(coinTarget, coin.er_coinBlack),
+				Coin.CoinType.coinBlue => action(coinTarget, coin.er_coinBlue),
+				Coin.CoinType.coinGreen => action(coinTarget, coin.er_coinGreen),
+				Coin.CoinType.coinRed => action(coinTarget, coin.er_coinRed),
+				Coin.CoinType.coinWhite => action(coinTarget, coin.er_coinWhite),
+				_ => -1,
+			};
+		}
+		/// <summary>
+		/// 获取将指定数量的代币兑换为桌宠币后可获得的金额
+		/// </summary>
+		/// <param name="cType">代币类型</param>
+		/// <param name="coinTarget">目标数量的代币</param>
+		internal double GetExchangeGetMoney(Coin.CoinType cType,ulong coinTarget) {
+			static double action(ulong c, uint er, float ef) => (c * er) - ((c * er) * ef);
+			return cType switch {
+				Coin.CoinType.coinBlack => action(coinTarget, coin.er_coinBlack, coin.ef_coinBlack),
+				Coin.CoinType.coinBlue => action(coinTarget, coin.er_coinBlue, coin.ef_coinBlue),
+				Coin.CoinType.coinGreen => action(coinTarget, coin.er_coinGreen, coin.ef_coinGreen),
+				Coin.CoinType.coinRed => action(coinTarget, coin.er_coinRed, coin.ef_coinRed),
+				Coin.CoinType.coinWhite => action(coinTarget, coin.er_coinWhite, coin.ef_coinWhite),
+				_ => -1,
+			};
 		}
 
 		/// <summary>
