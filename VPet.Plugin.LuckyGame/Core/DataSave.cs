@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Data.SQLite;
 using VPet_Simulator.Windows.Interface;
 
 namespace VPet.Plugin.LuckyGame.Core {
@@ -12,6 +12,8 @@ namespace VPet.Plugin.LuckyGame.Core {
 				MW.GameSavesData[mainKey][(LinePutScript.gi64)GameTokenCoin.Coin.CoinKey[b]] =
 					(long)gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
 			MW.GameSavesData[mainKey][(LinePutScript.gint)"DefCoinType"] = (int)gtc.defCoinType;
+
+			DatabaseBackupSave(MW,gtc);
 		}
 		/// <summary>
 		/// 读取数据
@@ -34,6 +36,59 @@ namespace VPet.Plugin.LuckyGame.Core {
 					? (GameTokenCoin.Coin.CoinType)dct 
 					: GameTokenCoin.Coin.CoinType.coinBlack;
 			} catch { gtcArg.defCoiType = GameTokenCoin.Coin.CoinType.coinBlack; }
+
+			DatabaseBackupRead(ref gtcArg);
+		}
+
+
+		const string databaseBackupConnectStr = "Data Source=lgbk.db;Version=3;";
+		private static void DatabaseBackupSave(IMainWindow MW, GameTokenCoin gtc) {
+			using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
+				sql.Open();
+				string moreCommand = "";
+				for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
+					moreCommand +=
+						@$"INSERT OR REPLACE INTO Coin (KeyName, Value) VALUES ('{GameTokenCoin.Coin.CoinKey[b]}', '{gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b)}');";
+				}
+				using (SQLiteCommand command = new(
+@$"
+CREATE TABLE IF NOT EXISTS Coin (
+    KeyName TEXT PRIMARY KEY,
+	Value TEXT
+);
+CREATE TABLE IF NOT EXISTS Other (
+    KeyName TEXT PRIMARY KEY,
+	Value TEXT
+);
+{moreCommand}
+INSERT OR REPLACE INTO Other (KeyName, Value) 
+	VALUES ('Money','{MW.Core.Save.Money}');
+"
+				, sql)) {
+					command.ExecuteNonQuery();
+				}
+			}
+		}
+		private static void DatabaseBackupRead(ref GameTokenCoin.GameTokenCoin_Args gtcArg) {
+			using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
+				sql.Open();
+
+				using (SQLiteCommand command = new(
+@$"
+SELECT KeyName, Value FROM Coin
+"
+				, sql)) {
+					using (SQLiteDataReader reader = command.ExecuteReader()) {
+						while (reader.Read()) {
+							for(byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
+								if(reader["KeyName"].ToString() == GameTokenCoin.Coin.CoinKey[b]) {
+
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 }
