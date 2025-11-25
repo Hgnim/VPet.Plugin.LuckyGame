@@ -57,6 +57,10 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 			/// 使用多少代币购买，代币越多中奖越多
 			/// </summary>
 			internal ulong coin;
+			/// <summary>
+			/// 使用的代币类型，如果为null则使用默认代币类型
+			/// </summary>
+			internal GameTokenCoin.Coin.CoinType? coinType=null;
 		}
 		/// <summary>
 		/// 彩票结果类
@@ -129,8 +133,16 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// 彩票开始
 		/// </summary>
 		/// <param name="buy">购买信息</param>
+		/// <param name="gtc">
+		/// 游戏代币数据<br/>
+		/// 提供此参数将根据buy参数自动扣取代币，如果留空或为null则需要手动扣取代币
+		/// </param>
 		/// <returns>返回结果信息</returns>
-		internal static LotteryResult Start(LotteryBuy buy) {
+		internal static LotteryResult Start(LotteryBuy buy, GameTokenCoin gtc=null) {
+			if(gtc!=null){
+				buy.coinType ??= gtc.defCoinType;
+				gtc.ChangeCoin(buy.coin, false, buy.coinType);
+			}
 			Random ran;
 			{
 				Random r = new();

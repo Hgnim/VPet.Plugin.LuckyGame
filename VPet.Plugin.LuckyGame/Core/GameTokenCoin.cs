@@ -188,6 +188,10 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 在原基础上更变代币的数量，并对桌宠钱进行相应的增减
 		/// </summary>
 		/// <param name="value">更变的值</param>
+		/// <param name="isAdd">
+		/// 是否为增加<br/>
+		/// true: 增加; false: 减少
+		/// </param>
 		/// <param name="cType">
 		/// 代币类型<br/>
 		/// 留空或为null则使用默认值
@@ -200,50 +204,36 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 3：代币不足兑换桌宠钱<br/>
 		/// 4：value参数值等于0<br/>
 		/// </returns>
-		internal byte ExchangeCoin(IMainWindow MW, long value, Coin.CoinType? cType=null) {
+		internal byte ExchangeCoin(IMainWindow MW, ulong value, bool isAdd, Coin.CoinType? cType=null) {
 			cType ??= defCoinType;
-			byte ret = 1;
-			ulong action(ulong c,uint er, double ef,long val) {
-				if (val > 0) {
-					double moneyMinus = val * er;
-					if (!(MW.Core.Save.Money < moneyMinus)) {
-						MW.Core.Save.Money -= moneyMinus;
-						c += (ulong)val;
-						ret = 0;
+			byte ret;
+			try {
+				if (value != 0) {
+					if (isAdd) {
+						double moneyMinus = GetExchangeNeedMoney(value, cType);
+						if (!(MW.Core.Save.Money < moneyMinus)) {
+							MW.Core.Save.Money -= moneyMinus;
+							ChangeCoin(value, true, cType);
+							ret = 0;
+						}
+						else
+							ret = 2;
 					}
-					else
-						ret = 2;
-				}
-				else if (val < 0) {
-					double moneyAdd = (-val * er) - (-val * er)*ef;
-					if (!(c < (ulong)(-val))) {
-						MW.Core.Save.Money += moneyAdd;
-						c -= (ulong)(-val);
-						ret = 0;
+					else {
+						double moneyAdd = GetExchangeGetMoney(value, cType);
+						if (ChangeCoin(value, false, cType) == 0) {
+							MW.Core.Save.Money += moneyAdd;
+							ret = 0;
+						}
+						else
+							ret = 3;
 					}
-					else
-						ret = 3;
 				}
 				else
 					ret = 4;
-				return c;
 			}
-			switch (cType) {
-				case Coin.CoinType.coinBlack:
-					coin.CoinBlack = action(coin.CoinBlack, coin.er_coinBlack, coin.ef_coinBlack, value);
-					break;
-				case Coin.CoinType.coinBlue:
-					coin.CoinBlue = action(coin.CoinBlue, coin.er_coinBlue, coin.ef_coinBlue, value);
-					break;
-				case Coin.CoinType.coinGreen:
-					coin.CoinGreen = action(coin.CoinGreen, coin.er_coinGreen, coin.ef_coinGreen, value);
-					break;
-				case Coin.CoinType.coinRed:
-					coin.CoinRed = action(coin.CoinRed, coin.er_coinRed, coin.ef_coinRed, value);
-					break;
-				case Coin.CoinType.coinWhite:
-					coin.CoinWhite = action(coin.CoinWhite, coin.er_coinWhite, coin.ef_coinWhite, value);
-					break;
+			catch {
+				ret = 1;
 			}
 			return ret;
 		}
@@ -348,6 +338,10 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 在原基础上更改代币数量
 		/// </summary>
 		/// <param name="value">更变的值</param>
+		/// <param name="isAdd">
+		/// 是否为增加<br/>
+		/// true: 增加; false: 减少
+		/// </param>
 		/// <param name="cType">
 		/// 代币类型<br/>
 		/// 留空或为null则使用默认值
@@ -359,21 +353,23 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 2：value参数值等于0<br/>
 		/// 3：代币不足<br/>
 		/// </returns>
-		internal byte ChangeCoin(long value, Coin.CoinType? cType=null) {
+		internal byte ChangeCoin(ulong value, bool isAdd, Coin.CoinType? cType=null) {
 			cType ??= defCoinType;
 			byte ret = 1;
-			ulong action(ulong c,long v) {
-				if (v > 0) {
-					c += (ulong)v;
-					ret = 0;
-				}
-				else if (v < 0) {
-					if (c - (ulong)(-v) >= 0) {
-						c -= (ulong)(-v);
+			ulong action(ulong c) {
+				if (value != 0) {
+					if (isAdd) {
+						c += value;
 						ret = 0;
 					}
-					else
-						ret = 3;
+					else {
+						if (c - value >= 0) {
+							c -= value;
+							ret = 0;
+						}
+						else
+							ret = 3;
+					}
 				}
 				else
 					ret = 2;
@@ -381,23 +377,35 @@ namespace VPet.Plugin.LuckyGame.Core {
 			}
 			switch (cType) {
 				case Coin.CoinType.coinBlack:
-					coin.CoinBlack = action(coin.CoinBlack, value);
+					ulong output;
+					output = action(coin.CoinBlack);
+					if (ret == 0)
+						coin.CoinBlack = output;
 					break;
 				case Coin.CoinType.coinBlue:
-					coin.CoinBlue = action(coin.CoinBlue, value);
+					output = action(coin.CoinBlue);
+					if (ret == 0)
+						coin.CoinBlue = output;
 					break;
 				case Coin.CoinType.coinGreen:
-					coin.CoinGreen = action(coin.CoinGreen, value);
+					output = action(coin.CoinGreen);
+					if (ret == 0)
+						coin.CoinGreen = output;
 					break;
 				case Coin.CoinType.coinRed:
-					coin.CoinRed = action(coin.CoinRed, value);
+					output = action(coin.CoinRed);
+					if (ret == 0)
+						coin.CoinRed = output;
 					break;
 				case Coin.CoinType.coinWhite:
-					coin.CoinWhite = action(coin.CoinWhite, value);
+					output = action(coin.CoinWhite);
+					if (ret == 0)
+						coin.CoinWhite = output;
 					break;
 			}
 			return ret;
 		}
+
 		/// <summary>
 		/// 构造函数的参数类
 		/// </summary>

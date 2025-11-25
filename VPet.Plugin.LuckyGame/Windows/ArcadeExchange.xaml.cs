@@ -58,7 +58,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             var amount = TokenAmountText.Value ?? 0;
             if (amount > 0)
             {
-                ProcessExchange(amount);
+                ProcessExchange(amount, true);
             }
             else
             {
@@ -71,7 +71,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             var amount = MoneyText.Value ?? 0;
             if (amount > 0)
             {
-                ProcessExchange(-amount);
+                ProcessExchange(amount, false);
             }
             else
             {
@@ -79,9 +79,9 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
         }
 
-        private void ProcessExchange(double amount)
+        private void ProcessExchange(double amount, bool isAdd)
         {
-            var result = TokenCoin.ExchangeCoin(MainWindow,(long)amount);
+            var result = TokenCoin.ExchangeCoin(MainWindow,(ulong)amount, isAdd);
             switch(result)
             {
                 case 0:
