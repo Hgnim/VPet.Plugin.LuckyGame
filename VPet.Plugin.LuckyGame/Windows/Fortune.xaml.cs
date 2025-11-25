@@ -22,8 +22,8 @@ namespace VPet.Plugin.LuckyGame.Windows
         private bool isInitialised = false;
         private Point startPoint;
         private bool isDragging = false;
-        private ulong coin;
-        private ushort place, allPlace;
+        private ulong coin = 1;
+        private ushort place = 0, allPlace = 8;
 
         // 转盘配置
         private int sectorCount => prizes.Count;
@@ -40,10 +40,16 @@ namespace VPet.Plugin.LuckyGame.Windows
             Color.FromRgb(128, 203, 196)  // 青色
         };
 
+        // 设置项属性
+        public int TokenCost { get => Convert.ToInt32(coin); private set { coin = Convert.ToUInt64(value); } }
+        public int SectorCount { get => Convert.ToInt32(allPlace); private set { allPlace = Convert.ToUInt16(value); } } 
+        public int PredictionPoints { get => Convert.ToInt32(place); private set { place = Convert.ToUInt16(value); } }
+
         internal Fortune(GameTokenCoin gtc)
         {
             InitializeComponent();
             InitializeGame();
+            LoadSettings();
         }
 
         private void InitializeGame()
@@ -57,8 +63,21 @@ namespace VPet.Plugin.LuckyGame.Windows
             animationTimer.Interval = TimeSpan.FromMilliseconds(1000.0 / 60); // 60FPS
             animationTimer.Tick += OnAnimationFrame;
 
-            // 初始化转盘UI
-            InitializeWheelUI();
+            // 初始化奖品列表
+            InitializePrizes();
+
+            // 默认显示设置界面
+            ShowSettingsView();
+        }
+
+        private void InitializePrizes()
+        {
+            // 根据转盘格数初始化奖品
+            prizes.Clear();
+            for (int i = 1; i <= SectorCount; i++)
+            {
+                prizes.Add($"{i}");
+            }
         }
 
         private void InitializeWheelUI()
@@ -67,22 +86,31 @@ namespace VPet.Plugin.LuckyGame.Windows
             ControlPanel.Visibility = Visibility.Visible;
             SettingBorder.Visibility = Visibility.Collapsed;
 
+            // 初始化转盘数据
             luckyWheel.PlaceCoin(coin, place, allPlace);
+
             // 创建旋转变换
             wheelTransform = new RotateTransform();
             WheelCanvas.RenderTransform = wheelTransform;
             WheelCanvas.RenderTransformOrigin = new Point(0.5, 0.5);
-            
+
+            // 绘制转盘
             DrawWheelSectors();
             isInitialised = true;
         }
 
+        #region 绘图部分
         private void DrawWheelSectors()
         {
-            double centerX = WheelCanvas.ActualWidth / 2;
-            double centerY = WheelCanvas.ActualHeight / 2;
-            double radius = Math.Min(centerX, centerY) - 20;
+            WheelCanvas.Children.Clear();
+
+            double centerX = 200; // 使用固定中心点
+            double centerY = 200;
+            double radius = 150;
             double anglePerSector = 360.0 / sectorCount;
+
+            // 添加转盘底座
+            AddWheelBase(centerX, centerY, radius);
 
             for (int i = 0; i < sectorCount; i++)
             {
@@ -90,7 +118,7 @@ namespace VPet.Plugin.LuckyGame.Windows
                 double endAngle = (i + 1) * anglePerSector;
 
                 // 创建扇形
-                Path sector = CreateSector(centerX, centerY, radius, startAngle, endAngle, sectorColors[i%8]);
+                Path sector = CreateSector(centerX, centerY, radius, startAngle, endAngle, sectorColors[i % sectorColors.Length]);
                 WheelCanvas.Children.Add(sector);
 
                 // 创建扇形标签
@@ -99,92 +127,182 @@ namespace VPet.Plugin.LuckyGame.Windows
                 WheelCanvas.Children.Add(label);
             }
 
-            // 添加中心圆
+            // 添加中心圆和指针
             AddCenter(centerX, centerY);
+            AddPointer(centerX, centerY);
+        }
+
+        private void AddWheelBase(double centerX, double centerY, double radius)
+        {
+            // 转盘外圈
+            Ellipse outerCircle = new Ellipse
+            {
+                Width = radius * 2 + 20,
+                Height = radius * 2 + 20,
+                Stroke = Brushes.Gold,
+                StrokeThickness = 3,
+                Fill = Brushes.Transparent
+            };
+            Canvas.SetLeft(outerCircle, centerX - radius - 10);
+            Canvas.SetTop(outerCircle, centerY - radius - 10);
+            WheelCanvas.Children.Add(outerCircle);
+
+            // 转盘底座
+            Ellipse baseCircle = new Ellipse
+            {
+                Width = radius * 2,
+                Height = radius * 2,
+                Fill = new SolidColorBrush(Color.FromArgb(100, 50, 50, 50)),
+                Stroke = Brushes.Gray,
+                StrokeThickness = 2
+            };
+            Canvas.SetLeft(baseCircle, centerX - radius);
+            Canvas.SetTop(baseCircle, centerY - radius);
+            WheelCanvas.Children.Add(baseCircle);
         }
 
         private Path CreateSector(double centerX, double centerY, double radius, double startAngle, double endAngle, Color color)
         {
-            PathFigure pathFigure = new PathFigure();
-
-            // 起始点（圆心）
-            pathFigure.StartPoint = new Point(centerX, centerY);
-
-            // 计算弧线点
-            double startRad = startAngle * Math.PI / 180;
-            double endRad = endAngle * Math.PI / 180;
-
-            Point startPoint = new Point(
-                centerX + radius * Math.Sin(startRad),
-                centerY - radius * Math.Cos(startRad));
-
-            Point endPoint = new Point(
-                centerX + radius * Math.Sin(endRad),
-                centerY - radius * Math.Cos(endRad));
-
-            pathFigure.Segments.Add(new LineSegment(startPoint, true));
-
-            // 添加弧线段
-            bool isLargeArc = (endAngle - startAngle) > 180;
-            ArcSegment arc = new ArcSegment(
-                endPoint,
-                new Size(radius, radius),
-                0, isLargeArc, SweepDirection.Clockwise, true);
-
-            pathFigure.Segments.Add(arc);
-            pathFigure.Segments.Add(new LineSegment(new Point(centerX, centerY), true));
-
-            PathGeometry pathGeometry = new PathGeometry();
-            pathGeometry.Figures.Add(pathFigure);
-
-            return new Path
+            try
             {
-                Data = pathGeometry,
-                Fill = new SolidColorBrush(color),
-                Stroke = Brushes.White,
-                StrokeThickness = 2
-            };
+                PathFigure pathFigure = new PathFigure();
+
+                // 起始点（圆心）
+                pathFigure.StartPoint = new Point(centerX, centerY);
+
+                // 计算弧线点
+                double startRad = startAngle * Math.PI / 180;
+                double endRad = endAngle * Math.PI / 180;
+
+                Point startPoint = new Point(
+                    centerX + radius * Math.Sin(startRad),
+                    centerY - radius * Math.Cos(startRad));
+
+                Point endPoint = new Point(
+                    centerX + radius * Math.Sin(endRad),
+                    centerY - radius * Math.Cos(endRad));
+
+                pathFigure.Segments.Add(new LineSegment(startPoint, true));
+
+                // 添加弧线段
+                bool isLargeArc = (endAngle - startAngle) > 180;
+                ArcSegment arc = new ArcSegment(
+                    endPoint,
+                    new Size(radius, radius),
+                    0, isLargeArc, SweepDirection.Clockwise, true);
+
+                pathFigure.Segments.Add(arc);
+                pathFigure.Segments.Add(new LineSegment(new Point(centerX, centerY), true));
+
+                PathGeometry pathGeometry = new PathGeometry();
+                pathGeometry.Figures.Add(pathFigure);
+
+                return new Path
+                {
+                    Data = pathGeometry,
+                    Fill = new SolidColorBrush(color),
+                    Stroke = Brushes.White,
+                    StrokeThickness = 1,
+                    Opacity = 0.8
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"创建扇形失败: {ex.Message}");
+                return new Path();
+            }
         }
 
         private TextBlock CreateSectorLabel(double centerX, double centerY, double labelRadius, double angle, string text)
         {
-            double angleRad = angle * Math.PI / 180;
-            double x = centerX + labelRadius * Math.Sin(angleRad);
-            double y = centerY - labelRadius * Math.Cos(angleRad);
-
-            TextBlock label = new TextBlock
+            try
             {
-                Text = text,
-                Foreground = Brushes.White,
-                FontWeight = FontWeights.Bold,
-                FontSize = 12,
-                Width = 60,
-                Height = 20,
-                TextAlignment = TextAlignment.Center,
-                RenderTransform = new RotateTransform(angle + 90, 30, 10)
-            };
+                double angleRad = angle * Math.PI / 180;
+                double x = centerX + labelRadius * Math.Sin(angleRad);
+                double y = centerY - labelRadius * Math.Cos(angleRad);
 
-            Canvas.SetLeft(label, x - 30);
-            Canvas.SetTop(label, y - 10);
+                TextBlock label = new TextBlock
+                {
+                    Text = text,
+                    Foreground = Brushes.White,
+                    FontWeight = FontWeights.Bold,
+                    FontSize = 10,
+                    Width = 50,
+                    Height = 20,
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap,
+                    RenderTransform = new RotateTransform(angle + 90, 25, 10)
+                };
 
-            return label;
+                Canvas.SetLeft(label, x - 25);
+                Canvas.SetTop(label, y - 10);
+
+                return label;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"创建标签失败: {ex.Message}");
+                return new TextBlock();
+            }
         }
 
         private void AddCenter(double centerX, double centerY)
         {
+            // 中心圆装饰
+            Ellipse centerDecor = new Ellipse
+            {
+                Width = 40,
+                Height = 40,
+                Fill = Brushes.Gold,
+                Stroke = Brushes.DarkGoldenrod,
+                StrokeThickness = 2
+            };
+            Canvas.SetLeft(centerDecor, centerX - 20);
+            Canvas.SetTop(centerDecor, centerY - 20);
+            WheelCanvas.Children.Add(centerDecor);
+
             // 中心圆
             Ellipse centerCircle = new Ellipse
             {
-                Width = 30,
-                Height = 30,
+                Width = 20,
+                Height = 20,
                 Fill = Brushes.Red,
                 Stroke = Brushes.DarkRed,
-                StrokeThickness = 3
+                StrokeThickness = 2
             };
-
-            Canvas.SetLeft(centerCircle, centerX - 15);
-            Canvas.SetTop(centerCircle, centerY - 15);
+            Canvas.SetLeft(centerCircle, centerX - 10);
+            Canvas.SetTop(centerCircle, centerY - 10);
             WheelCanvas.Children.Add(centerCircle);
+        }
+
+        private void AddPointer(double centerX, double centerY)
+        {
+            // 指针底座
+            Ellipse pointerBase = new Ellipse
+            {
+                Width = 15,
+                Height = 15,
+                Fill = Brushes.Gold,
+                Stroke = Brushes.DarkGoldenrod,
+                StrokeThickness = 1
+            };
+            Canvas.SetLeft(pointerBase, centerX - 7.5);
+            Canvas.SetTop(pointerBase, centerY - 100);
+            WheelCanvas.Children.Add(pointerBase);
+
+            // 指针箭头
+            Polygon pointer = new Polygon
+            {
+                Points = new PointCollection {
+                    new Point(centerX, centerY - 85),
+                    new Point(centerX - 10, centerY - 60),
+                    new Point(centerX + 10, centerY - 60)
+                },
+                Fill = Brushes.Red,
+                Stroke = Brushes.DarkRed,
+                StrokeThickness = 1
+            };
+            WheelCanvas.Children.Add(pointer);
         }
 
         private void OnWheelAngleChanged(float angle)
@@ -192,7 +310,10 @@ namespace VPet.Plugin.LuckyGame.Windows
             // 在UI线程上更新角度
             Dispatcher.Invoke(() =>
             {
-                wheelTransform.Angle = angle;
+                if (wheelTransform != null)
+                {
+                    wheelTransform.Angle = angle;
+                }
             });
         }
 
@@ -200,6 +321,7 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             // 可以在这里添加额外的动画效果
         }
+        #endregion
 
         private async void SpinButton_Click(object sender, RoutedEventArgs e)
         {
@@ -207,8 +329,9 @@ namespace VPet.Plugin.LuckyGame.Windows
             if (!isInitialised)
             {
                 MessageBoxX.Show("转盘未初始化，请点击重置后继续".Translate(), "警告".Translate());
+                return;
             }
-            isInitialised = false;
+
             isSpinning = true;
             SpinButton.IsEnabled = false;
             SpinButton.Content = "旋转中...".Translate();
@@ -224,7 +347,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
             catch (Exception ex)
             {
-                MessageBox.Show("转盘旋转出错: {0}".Translate(ex.Message), "错误".Translate(),
+                MessageBox.Show($"转盘旋转出错: {ex.Message}".Translate(), "错误".Translate(),
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
@@ -243,16 +366,18 @@ namespace VPet.Plugin.LuckyGame.Windows
             return resultIndex;
         }
 
-        private void ShowResult(string prize)
+        private void ShowResult(string resultString)
         {
             try
             {
-                luckyWheel.WinCoin(Convert.ToUInt16(prize));
-                MessageBoxX.Show("恭喜您获得: {0}!".Translate(prize), "抽奖结果".Translate());
+                var result = Convert.ToUInt16(resultString);
+                var prize = luckyWheel.WinCoin(result);
+
+                MessageBoxX.Show("恭喜您获得: {0} 代币!".Translate(result), "抽奖结果".Translate());
             }
             catch (Exception ex)
             {
-                MessageBox.Show("显示结果时出错: {0}".Translate(ex.Message), "错误".Translate(),
+                MessageBox.Show($"显示结果时出错: {ex.Message}".Translate(), "错误".Translate(),
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -267,6 +392,126 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
         }
 
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowSettingsView();
+        }
+
+        private void SaveSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ValidateAndSaveSettings())
+            {
+                ShowWheelView();
+                MessageBoxX.Show("设置保存成功！".Translate(), "提示".Translate());
+            }
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowWheelView();
+        }
+
+        private bool ValidateAndSaveSettings()
+        {
+            try
+            {
+                var tokenCost = TokenCostText.Value;
+                // 验证代币数量
+                if (tokenCost <= 0)
+                {
+                    MessageBoxX.Show("代币数量必须是大于0的整数".Translate(), "错误".Translate());
+                    return false;
+                }
+                var predictPoint = PredictionPointsText.Value;
+                // 验证预测点数
+                if (predictPoint < 0 || predictPoint > SectorCount)
+                {
+                    MessageBoxX.Show("预测点数必须在10-100之间".Translate(), "错误".Translate());
+                    return false;
+                }
+
+                // 获取选中的转盘格数
+                if (SectorCountComboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag != null)
+                {
+                    int sectorCount = int.Parse(selectedItem.Tag.ToString());
+                    if (sectorCount < 4 || sectorCount > 16)
+                    {
+                        MessageBoxX.Show("转盘格数必须在4-16之间".Translate(), "错误".Translate());
+                        return false;
+                    }
+
+                    SectorCount = sectorCount;
+                }
+                else
+                {
+                    MessageBoxX.Show("请选择有效的转盘格数".Translate(), "错误".Translate());
+                    return false;
+                }
+
+                // 保存设置
+                TokenCost = Convert.ToInt32(tokenCost);
+                PredictionPoints = Convert.ToInt32(predictPoint);
+
+                // 重新初始化奖品列表
+                InitializePrizes();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBoxX.Show($"保存设置时出错: {ex.Message}".Translate(), "错误".Translate());
+                return false;
+            }
+        }
+
+        private void LoadSettings()
+        {
+            try
+            {
+                // 从配置文件加载设置
+                TokenCostText.Value = TokenCost;
+                PredictionPointsText.Value = PredictionPoints;
+
+                // 设置ComboBox选中项
+                foreach (ComboBoxItem item in SectorCountComboBox.Items)
+                {
+                    if (item.Tag != null && int.Parse(item.Tag.ToString()) == SectorCount)
+                    {
+                        item.IsSelected = true;
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"加载设置失败: {ex.Message}");
+            }
+        }
+
+        private void ShowSettingsView()
+        {
+            SettingBorder.Visibility = Visibility.Visible;
+            WheelBorder.Visibility = Visibility.Collapsed;
+            ControlPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void ShowWheelView()
+        {
+            SettingBorder.Visibility = Visibility.Collapsed;
+            WheelBorder.Visibility = Visibility.Visible;
+            ControlPanel.Visibility = Visibility.Visible;
+
+            if (!isInitialised)
+            {
+                InitializeWheelUI();
+            }
+            else
+            {
+                // 重新绘制转盘以适应新的设置
+                DrawWheelSectors();
+            }
+        }
+
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             animationTimer?.Stop();
@@ -275,16 +520,15 @@ namespace VPet.Plugin.LuckyGame.Windows
         private void WheelCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             // 当Canvas大小改变时重绘转盘
-            if (e.NewSize.Width > 0 && e.NewSize.Height > 0)
+            if (e.NewSize.Width > 0 && e.NewSize.Height > 0 && isInitialised)
             {
-                WheelCanvas.Children.Clear();
                 DrawWheelSectors();
             }
         }
 
         private void ExitButton_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            base.Close();
+            this.Close();
         }
 
         private void DragArea_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -317,6 +561,21 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             isDragging = false;
             ((UIElement)sender).ReleaseMouseCapture();
+        }
+
+        private void TokenCostText_ValueChanged(object sender, Panuon.WPF.SelectedValueChangedRoutedEventArgs<double?> e)
+        {
+            SettingStatusText.Text = "设置已修改，点击保存应用更改".Translate();
+            TokenCost = TokenCostText.Value.HasValue ? Convert.ToInt32(TokenCostText.Value.Value) : 1;
+        }
+
+        private void SectorCountComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (SectorCountComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                SettingStatusText.Text = $"转盘格数已选择: {selectedItem.Content}".Translate();
+                SectorCount = selectedItem.Tag != null ? int.Parse(selectedItem.Tag.ToString()) : 8;
+            }
         }
     }
 }

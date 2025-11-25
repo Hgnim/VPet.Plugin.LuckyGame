@@ -33,6 +33,7 @@
                         MouseLeftButtonDown="ExitButton_Click" Margin="0,0,10,0"/>
                 </Grid>
             </Border>
+            <!-- 设置容器 -->
             <Border x:Name="SettingBorder" Grid.Row="1" Margin="20" Background="{DynamicResource DARKPrimary}"
                     CornerRadius="10" BorderBrush="{DynamicResource DARKPrimaryLighter}" 
                     BorderThickness="2" Padding="10">
