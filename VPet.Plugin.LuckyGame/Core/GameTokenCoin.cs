@@ -12,7 +12,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// <param name="value">代币数量</param>
 			/// <param name="rate">该代币汇率</param>
 			/// <param name="fee">该代币兑回手续费</param>
-			internal delegate void CoinInfo(CoinType type,ulong value,uint rate,float fee);
+			internal delegate void CoinInfo(CoinType type,ulong value,uint rate, double fee);
 			internal CoinInfo OnCoinChange;
 			/// <summary>
 			/// 代币类型
@@ -81,7 +81,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// 兑换桌宠钱时的手续费占比<br/>
 			/// 可动态更改
 			/// </summary>
-			internal float ef_coinBlack = .1f; //exchange fee
+			internal double ef_coinBlack = .5; //exchange fee
 			/// <summary>
 			/// 代币-蓝色
 			/// </summary>
@@ -97,7 +97,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// <inheritdoc cref="er_coinBlack"/>
 			internal uint er_coinBlue = 100;
 			/// <inheritdoc cref="ef_coinBlack"/>
-			internal float ef_coinBlue = .05f;
+			internal double ef_coinBlue = .025;
 			/// <summary>
 			/// 代币-绿色
 			/// </summary>
@@ -113,7 +113,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// <inheritdoc cref="er_coinBlack"/>
 			internal uint er_coinGreen = 1_0000;
 			/// <inheritdoc cref="ef_coinBlack"/>
-			internal float ef_coinGreen = .01f;
+			internal double ef_coinGreen = .00125;
 			/// <summary>
 			/// 代币-红色
 			/// </summary>
@@ -129,7 +129,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// <inheritdoc cref="er_coinBlack"/>
 			internal uint er_coinRed = 100_0000;
 			/// <inheritdoc cref="ef_coinBlack"/>
-			internal float ef_coinRed = .005f;
+			internal double ef_coinRed = .0000625;
 			/// <summary>
 			/// 代币-白色
 			/// </summary>
@@ -145,7 +145,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// <inheritdoc cref="er_coinBlack"/>
 			internal uint er_coinWhite = 1_0000_0000;
 			/// <inheritdoc cref="ef_coinBlack"/>
-			internal float ef_coinWhite = .00025f;
+			internal double ef_coinWhite = .000003125;
 
 			internal Coin(ulong[] coins, uint[] erCoin, float[] efCoin) {
 				if (coins != null) {
@@ -203,7 +203,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		internal byte ExchangeCoin(IMainWindow MW, long value, Coin.CoinType? cType=null) {
 			cType ??= defCoinType;
 			byte ret = 1;
-			ulong action(ulong c,uint er,float ef,long val) {
+			ulong action(ulong c,uint er, double ef,long val) {
 				if (val > 0) {
 					double moneyMinus = val * er;
 					if (!(MW.Core.Save.Money < moneyMinus)) {
@@ -277,7 +277,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// </param>
 		internal double GetExchangeGetMoney(ulong coinTarget, Coin.CoinType? cType=null) {
 			cType ??= defCoinType;
-			static double action(ulong c, uint er, float ef) => (c * er) - ((c * er) * ef);
+			static double action(ulong c, uint er, double ef) => (c * er) - ((c * er) * ef);
 			return cType switch {
 				Coin.CoinType.coinBlack => action(coinTarget, coin.er_coinBlack, coin.ef_coinBlack),
 				Coin.CoinType.coinBlue => action(coinTarget, coin.er_coinBlue, coin.ef_coinBlue),
@@ -313,7 +313,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 代币类型<br/>
 		/// 留空或为null则使用默认值
 		/// </param>
-		internal float GetCoinExchangeFee(Coin.CoinType? cType=null) {
+		internal double GetCoinExchangeFee(Coin.CoinType? cType=null) {
 			cType ??= defCoinType;
 			return cType switch {
 				Coin.CoinType.coinBlack => coin.ef_coinBlack,

@@ -207,10 +207,20 @@ namespace VPet.Plugin.LuckyGame.Windows
 
 		private void CoinTypeSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
             TokenCoin.defCoinType = (GameTokenCoin.Coin.CoinType)CoinTypeSelect.SelectedIndex;
-			CoinTypeSelect_Lable.Text = "{0} = {1} 金钱"
-                .Translate(GameTokenCoin.Coin.CoinName[(int)TokenCoin.defCoinType],TokenCoin.GetCoinExchangeRate().ToString("N0"));
-            CoinTypeSelect_Lable2.Text ="回收 {0} 收取 {1}% 手续费"
-                .Translate(GameTokenCoin.Coin.CoinName[(int)TokenCoin.defCoinType],(TokenCoin.GetCoinExchangeFee()*100f).ToString("N3"));
+            {
+                uint cer = TokenCoin.GetCoinExchangeRate();
+                byte cer_N = cer.ToString().Split('.').Length > 1 
+                                ? (byte)cer.ToString().Split('.')[1].Length 
+                                : (byte)0;
+				CoinTypeSelect_Lable.Text = "{0} = {1} 金钱"
+                    .Translate(GameTokenCoin.Coin.CoinName[(int)TokenCoin.defCoinType], cer.ToString($"N{cer_N}"));
+				double cef = TokenCoin.GetCoinExchangeFee() * (double)100;
+                byte cef_N = cef.ToString().Split('.').Length > 1 
+                                ? (byte)cef.ToString().Split('.')[1].Length 
+                                : (byte)0;
+				CoinTypeSelect_Lable2.Text = "回收 {0} 收取 {1}% 手续费"
+                    .Translate(GameTokenCoin.Coin.CoinName[(int)TokenCoin.defCoinType], cef.ToString($"N{cef_N}"));
+            }
             TokenAmountText_ValueChanged(null, null);
 			MoneyText_ValueChanged(null, null);
 			UpdateDisplay();

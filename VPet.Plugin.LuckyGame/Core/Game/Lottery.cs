@@ -130,7 +130,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// </summary>
 		/// <param name="buy">购买信息</param>
 		/// <returns>返回结果信息</returns>
-		internal LotteryResult Start(LotteryBuy buy) {
+		internal static LotteryResult Start(LotteryBuy buy) {
 			Random ran;
 			{
 				Random r = new();
