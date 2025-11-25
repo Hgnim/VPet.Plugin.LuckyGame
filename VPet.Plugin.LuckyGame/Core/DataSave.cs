@@ -1,4 +1,6 @@
-﻿using System.Data.SQLite;
+﻿using LinePutScript.Localization.WPF;
+using Panuon.WPF.UI;
+using System.Data.SQLite;
 using VPet_Simulator.Windows.Interface;
 
 namespace VPet.Plugin.LuckyGame.Core {
@@ -40,43 +42,74 @@ namespace VPet.Plugin.LuckyGame.Core {
 			DatabaseBackupRead(ref gtcArg);
 		}
 
+        const string databaseBackupConnectStr = "Data Source=lgbk.db;Version=3;";
 
-		const string databaseBackupConnectStr = "Data Source=lgbk.db;Version=3;";
-		private static void DatabaseBackupSave(IMainWindow MW, GameTokenCoin gtc) {
-			using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
-				sql.Open();
-				string moreCommand = "";
-				for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
-					moreCommand +=
-						@$"INSERT OR REPLACE INTO Coin (KeyName, Value) VALUES ('{GameTokenCoin.Coin.CoinKey[b]}', '{gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b)}');";
-				}
-				using (SQLiteCommand command = new(
-@$"
-CREATE TABLE IF NOT EXISTS Coin (
-    KeyName TEXT PRIMARY KEY,
-	Value TEXT
-);
-CREATE TABLE IF NOT EXISTS Other (
-    KeyName TEXT PRIMARY KEY,
-	Value TEXT
-);
-{moreCommand}
-INSERT OR REPLACE INTO Other (KeyName, Value) 
-	VALUES ('Money','{MW.Core.Save.Money}');
-"
-				, sql)) {
-					command.ExecuteNonQuery();
+        public static void EnsureDatabaseBackup() {
+			try
+			{
+				using (SQLiteConnection sql = new(databaseBackupConnectStr))
+				{
+					sql.Open();
+					using (SQLiteCommand command = new(
+						@"
+							CREATE TABLE IF NOT EXISTS Coin (
+								KeyName TEXT PRIMARY KEY,
+								Value INTEGER
+							);
+							CREATE TABLE IF NOT EXISTS Other (
+								KeyName TEXT PRIMARY KEY,
+								Value INTEGER
+							);
+						"
+					, sql))
+					{
+						command.ExecuteNonQuery();
+					}
 				}
 			}
+			catch (SQLiteException ex)
+			{
+				MessageBoxX.Show("数据库备份初始化失败！\n{0}".Translate(ex.Message), "错误".Translate());
+			}
+        }
+
+		private static void DatabaseBackupSave(IMainWindow MW, GameTokenCoin gtc) {
+			try
+			{
+				using (SQLiteConnection sql = new(databaseBackupConnectStr))
+				{
+					sql.Open();
+					string moreCommand = "";
+					for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++)
+					{
+						moreCommand +=
+							@$"INSERT OR REPLACE INTO Coin (KeyName, Value) VALUES ('{GameTokenCoin.Coin.CoinKey[b]}', '{gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b)}');";
+					}
+					using (SQLiteCommand command = new(
+						@$"
+							{moreCommand}
+							INSERT OR REPLACE INTO Other (KeyName, Value) 
+								VALUES ('Money','{MW.Core.Save.Money}');
+						"
+					, sql))
+					{
+						command.ExecuteNonQuery();
+					}
+				}
+			}
+			catch(SQLiteException ex)
+			{
+				MessageBoxX.Show("数据库备份保存失败！\n{0}".Translate(ex.Message), "错误".Translate());
+            }
 		}
 		private static void DatabaseBackupRead(ref GameTokenCoin.GameTokenCoin_Args gtcArg) {
 			using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
 				sql.Open();
 
 				using (SQLiteCommand command = new(
-@$"
-SELECT KeyName, Value FROM Coin
-"
+					@$"
+					SELECT KeyName, Value FROM Coin
+					"
 				, sql)) {
 					using (SQLiteDataReader reader = command.ExecuteReader()) {
 						while (reader.Read()) {

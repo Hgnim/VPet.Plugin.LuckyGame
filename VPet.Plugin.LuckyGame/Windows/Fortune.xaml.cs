@@ -24,7 +24,7 @@ namespace VPet.Plugin.LuckyGame.Windows
         private bool isDragging = false;
         private ulong coin = 1;
         private ushort place = 0, allPlace = 8;
-
+        private bool UIInitialized = false;
         // 转盘配置
         private int sectorCount => prizes.Count;
 
@@ -48,6 +48,7 @@ namespace VPet.Plugin.LuckyGame.Windows
         internal Fortune(GameTokenCoin gtc)
         {
             InitializeComponent();
+            UIInitialized = true;
             InitializeGame();
             LoadSettings();
         }
@@ -127,9 +128,8 @@ namespace VPet.Plugin.LuckyGame.Windows
                 WheelCanvas.Children.Add(label);
             }
 
-            // 添加中心圆和指针
+            // 添加中心圆
             AddCenter(centerX, centerY);
-            AddPointer(centerX, centerY);
         }
 
         private void AddWheelBase(double centerX, double centerY, double radius)
@@ -275,36 +275,6 @@ namespace VPet.Plugin.LuckyGame.Windows
             WheelCanvas.Children.Add(centerCircle);
         }
 
-        private void AddPointer(double centerX, double centerY)
-        {
-            // 指针底座
-            Ellipse pointerBase = new Ellipse
-            {
-                Width = 15,
-                Height = 15,
-                Fill = Brushes.Gold,
-                Stroke = Brushes.DarkGoldenrod,
-                StrokeThickness = 1
-            };
-            Canvas.SetLeft(pointerBase, centerX - 7.5);
-            Canvas.SetTop(pointerBase, centerY - 100);
-            WheelCanvas.Children.Add(pointerBase);
-
-            // 指针箭头
-            Polygon pointer = new Polygon
-            {
-                Points = new PointCollection {
-                    new Point(centerX, centerY - 85),
-                    new Point(centerX - 10, centerY - 60),
-                    new Point(centerX + 10, centerY - 60)
-                },
-                Fill = Brushes.Red,
-                Stroke = Brushes.DarkRed,
-                StrokeThickness = 1
-            };
-            WheelCanvas.Children.Add(pointer);
-        }
-
         private void OnWheelAngleChanged(float angle)
         {
             // 在UI线程上更新角度
@@ -373,7 +343,7 @@ namespace VPet.Plugin.LuckyGame.Windows
                 var result = Convert.ToUInt16(resultString);
                 var prize = luckyWheel.WinCoin(result);
 
-                MessageBoxX.Show("恭喜您获得: {0} 代币!".Translate(result), "抽奖结果".Translate());
+                MessageBoxX.Show("恭喜您获得: {0} 代币!".Translate(prize), "抽奖结果".Translate());
             }
             catch (Exception ex)
             {
@@ -408,6 +378,10 @@ namespace VPet.Plugin.LuckyGame.Windows
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
+            if(!ValidateAndSaveSettings())
+            {
+                return;
+            }
             ShowWheelView();
         }
 
@@ -426,7 +400,7 @@ namespace VPet.Plugin.LuckyGame.Windows
                 // 验证预测点数
                 if (predictPoint < 0 || predictPoint > SectorCount)
                 {
-                    MessageBoxX.Show("预测点数必须在10-100之间".Translate(), "错误".Translate());
+                    MessageBoxX.Show("预测点数必须在0-转盘格数之间".Translate(), "错误".Translate());
                     return false;
                 }
 
@@ -565,16 +539,24 @@ namespace VPet.Plugin.LuckyGame.Windows
 
         private void TokenCostText_ValueChanged(object sender, Panuon.WPF.SelectedValueChangedRoutedEventArgs<double?> e)
         {
+            if (!UIInitialized) return;
             SettingStatusText.Text = "设置已修改，点击保存应用更改".Translate();
             TokenCost = TokenCostText.Value.HasValue ? Convert.ToInt32(TokenCostText.Value.Value) : 1;
         }
 
+        private void SettingButtton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowSettingsView();
+        }
+
         private void SectorCountComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (!UIInitialized) return;
             if (SectorCountComboBox.SelectedItem is ComboBoxItem selectedItem)
             {
                 SettingStatusText.Text = $"转盘格数已选择: {selectedItem.Content}".Translate();
                 SectorCount = selectedItem.Tag != null ? int.Parse(selectedItem.Tag.ToString()) : 8;
+                PredictionPointsText.Maximum = SectorCount;
             }
         }
     }

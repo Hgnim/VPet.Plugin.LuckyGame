@@ -5,6 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
+        xmlns:pu="clr-namespace:Panuon.WPF.UI;assembly=Panuon.WPF.UI"
         Height="500" Width="500" WindowStartupLocation="CenterScreen"
         Background="Transparent" AllowsTransparency="True" WindowStyle="None">
     <Window.Resources>
@@ -33,16 +34,131 @@
                         MouseLeftButtonDown="ExitButton_Click" Margin="0,0,10,0"/>
                 </Grid>
             </Border>
+
             <!-- 设置容器 -->
             <Border x:Name="SettingBorder" Grid.Row="1" Margin="20" Background="{DynamicResource DARKPrimary}"
                     CornerRadius="10" BorderBrush="{DynamicResource DARKPrimaryLighter}" 
                     BorderThickness="2" Padding="10">
-                
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 设置标题 -->
+                    <TextBlock Grid.Row="0" Text="{ll:Str 转盘设置}" 
+                              FontSize="20" FontWeight="Bold"
+                              Foreground="{DynamicResource DARKPrimaryText}"
+                              HorizontalAlignment="Center" Margin="0,0,0,10"/>
+
+                    <!-- 设置项 -->
+                    <StackPanel Grid.Row="1" Orientation="Vertical" VerticalAlignment="Center">
+                        <!-- 使用代币数量设置 -->
+                        <Border Background="{DynamicResource DARKPrimaryTrans3}" 
+                                CornerRadius="5" Padding="10" Margin="0,5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="{ll:Str 每次使用代币数量：}" 
+                                          Foreground="{DynamicResource DARKPrimaryText}"
+                                          FontSize="14" VerticalAlignment="Center"/>
+
+                                <pu:NumberInput x:Name="TokenCostText" Grid.Column="1" 
+                                        Value="10" Width="80" FontSize="14"
+                                        Background="{DynamicResource DARKPrimaryTrans4}"
+                                        Foreground="{DynamicResource DARKPrimaryText}"
+                                        BorderBrush="{DynamicResource DARKPrimaryLighter}"
+                                        BorderThickness="1" Padding="5" Minimum="0"
+                                        ValueChanged="TokenCostText_ValueChanged"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- 转盘格数设置 -->
+                        <Border Background="{DynamicResource DARKPrimaryTrans3}" 
+                                CornerRadius="5" Padding="10" Margin="0,5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="79*"/>
+                                    <ColumnDefinition Width="25*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="{ll:Str 转盘格数：}" 
+                                          Foreground="{DynamicResource DARKPrimaryText}"
+                                          FontSize="14" VerticalAlignment="Center"/>
+
+                                <ComboBox x:Name="SectorCountComboBox" Grid.Column="1" 
+                                         Width="100" FontSize="14" SelectedIndex="0"
+                                         Background="{DynamicResource DARKPrimaryTrans4}"
+                                         Foreground="{DynamicResource DARKPrimaryText}"
+                                         BorderBrush="{DynamicResource DARKPrimaryLighter}"
+                                         SelectionChanged="SectorCountComboBox_SelectionChanged">
+                                    <ComboBoxItem Content="4格" Tag="4"/>
+                                    <ComboBoxItem Content="5格" Tag="5"/>
+                                    <ComboBoxItem Content="6格" Tag="6" IsSelected="True"/>
+                                    <ComboBoxItem Content="8格" Tag="8"/>
+                                    <ComboBoxItem Content="10格" Tag="10"/>
+                                </ComboBox>
+                            </Grid>
+                        </Border>
+
+                        <!-- 预测点数设置 -->
+                        <Border Background="{DynamicResource DARKPrimaryTrans3}" 
+                                CornerRadius="5" Padding="10" Margin="0,5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" Text="{ll:Str 预测点数：}" 
+                                          Foreground="{DynamicResource DARKPrimaryText}"
+                                          FontSize="14" VerticalAlignment="Center"/>
+
+                                <pu:NumberInput x:Name="PredictionPointsText" Grid.Column="1" 
+                                        Value="1" StepFactor="1" Width="80" FontSize="14"
+                                        Background="{DynamicResource DARKPrimaryTrans4}"
+                                        Foreground="{DynamicResource DARKPrimaryText}"
+                                        BorderBrush="{DynamicResource DARKPrimaryLighter}"
+                                        BorderThickness="1" Padding="5" Minimum="1"
+                                        />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- 保存按钮和状态信息 -->
+                    <StackPanel Grid.Row="2" Orientation="Vertical" Margin="0,10,0,0">
+                        <!-- 状态信息 -->
+                        <TextBlock x:Name="SettingStatusText" Text="{ll:Str 请设置转盘参数}" 
+                                  Foreground="{DynamicResource InfoBrush}" FontSize="12"
+                                  HorizontalAlignment="Center" Margin="0,0,0,5"
+                                  TextWrapping="Wrap" TextAlignment="Center"/>
+
+                        <!-- 按钮区域 -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button x:Name="SaveSettingsButton" Content="{ll:Str 保存设置}" 
+                                    Click="SaveSettingsButton_Click" Padding="15,8" Margin="5" 
+                                    Background="{DynamicResource SuccessBrush}" 
+                                    Foreground="{DynamicResource DARKPrimaryText}" 
+                                    FontWeight="Bold" FontSize="12" MinWidth="80"/>
+
+                            <Button x:Name="CancelButton" Content="{ll:Str 取消}" 
+                                    Click="CancelButton_Click" Padding="15,8" Margin="5" 
+                                    Background="{DynamicResource WarningBrush}" 
+                                    Foreground="{DynamicResource DARKPrimaryText}" 
+                                    FontWeight="Bold" FontSize="12" MinWidth="80"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
             </Border>
+
             <!-- 转盘容器 -->
             <Border x:Name="WheelBorder" Grid.Row="1" Margin="20" Background="{DynamicResource DARKPrimary}" 
                     CornerRadius="10" BorderBrush="{DynamicResource DARKPrimaryLighter}" 
-                    BorderThickness="2" Padding="10">
+                    BorderThickness="2" Padding="10" Visibility="Collapsed">
                 <Grid>
                     <!-- 转盘区域（可旋转的部分） -->
                     <Viewbox Stretch="Uniform">
@@ -111,6 +227,11 @@
 
                     <Button x:Name="ResetButton" Content="{ll:Str 重置}" 
                            Click="ResetButton_Click" Padding="20,8" Margin="5" 
+                           Background="{DynamicResource WarningBrush}" 
+                           Foreground="{DynamicResource DARKPrimaryText}" 
+                           FontWeight="Bold" FontSize="12" MinWidth="80"/>
+                    <Button x:Name="SettingButtton" Content="{ll:Str 设置}" 
+                           Click="SettingButtton_Click"  Padding="20,8" Margin="5" 
                            Background="{DynamicResource WarningBrush}" 
                            Foreground="{DynamicResource DARKPrimaryText}" 
                            FontWeight="Bold" FontSize="12" MinWidth="80"/>

@@ -18,7 +18,8 @@ namespace VPet.Plugin.LuckyGame
 		public override string PluginName => "LuckyGame";
         public override void LoadPlugin()
         {
-			DataSave.Read(MW, out GameTokenCoin.GameTokenCoin_Args gtcArg);
+            DataSave.EnsureDatabaseBackup();
+            DataSave.Read(MW, out GameTokenCoin.GameTokenCoin_Args gtcArg);
 			gtc = new GameTokenCoin(gtcArg);
         }
 
