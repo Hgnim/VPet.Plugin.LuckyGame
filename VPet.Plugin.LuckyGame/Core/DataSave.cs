@@ -141,34 +141,39 @@ namespace VPet.Plugin.LuckyGame.Core {
 			internal bool DisThisTime { get; set; } = false;
 			internal string SaveTag { get; set; } = ThisSaveTag;
 			internal long Time { get; set; } = TimeData;
-			internal required string CoinKey { get; set; }
-			internal required string CoinChange { get; set; }
+			internal /*required*/ string CoinKey { get; set; }
+			internal /*required*/ string CoinChange { get; set; }
 #nullable enable
 			internal string? MoneyChange { get; set; } = null;
 			internal string? Note { get; set; } = null;
 #nullable disable
+			/// <summary>
+			/// 为true时，其它值将根据参数或默认值补全<br/>
+			/// 用于ChangeCoin函数
+			/// </summary>
+			internal bool OnlyNote { get; set; } = false;
+
 		}
 		/// <summary>
 		/// 代币更改日志插入
 		/// </summary>
 		/// <param name="cel">日志信息</param>
 		internal static async void CoinExchangeLog_Insert(CoinExchangeLog cel) => await Task.Run(() => {
-			try {
-				if(!cel.DisThisTime)
-				using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
-					sql.Open();
-					using (SQLiteCommand command = new(
-						@$"
+			if (cel.CoinKey != null && cel.CoinChange != null) {
+				if (!cel.DisThisTime)
+					using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
+						sql.Open();
+						using (SQLiteCommand command = new(
+							@$"
 						INSERT INTO CoinExchangeLog (SaveTag, Time, CoinKey, CoinChange, MoneyChange, Note) 
 								VALUES ('{cel.SaveTag}', '{cel.Time}', '{cel.CoinKey}', '{cel.CoinChange}', '{cel.MoneyChange}', '{cel.Note}');
 						"
-					, sql)) {
-						command.ExecuteNonQuery();
+						, sql)) {
+							command.ExecuteNonQuery();
+						}
 					}
-				}
-			} catch (SQLiteException ex) {
-				MessageBoxX.Show("数据库备份保存失败！\n{0}".Translate(ex.Message), "错误".Translate());//*记录：这行代码会报UI线程错误
 			}
+			else throw new Exception("CoinExchangeLog_Insert函数中有关键参数为null");
 		});
 		internal class CoinExchangeLog_CheckResult {
 			/// <summary>

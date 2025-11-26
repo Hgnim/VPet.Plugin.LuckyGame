@@ -66,11 +66,11 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// 彩票结果类
 		/// </summary>
 		internal class LotteryResult {
-			LotteryNumber inputNumber;
+			LotteryBuy buyInfo;
 			/// <summary>
-			/// 输入的号码
+			/// 购买信息
 			/// </summary>
-			internal LotteryNumber InputNumber => inputNumber;
+			internal LotteryBuy BuyInfo => buyInfo;
 
 			LotteryNumber winningNumber;
 			/// <summary>
@@ -111,7 +111,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 			internal ulong WinCoin => winCoin;
 
 			internal LotteryResult(
-				LotteryNumber inputNum, 
+				LotteryBuy buyInf, 
 				LotteryNumber winningNum, 
 				byte mainWinCou, 
 				byte deputyWinCou,
@@ -119,7 +119,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 				bool[] deputyWinLo,
 				ulong winCoi
 			) {
-				inputNumber = inputNum;
+				buyInfo = buyInf;
 				winningNumber = winningNum;
 				mainWinCount = mainWinCou;
 				deputyWinCount = deputyWinCou;
@@ -135,14 +135,15 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// <param name="buy">购买信息</param>
 		/// <param name="gtc">
 		/// 游戏代币数据<br/>
-		/// 提供此参数将根据buy参数自动扣取代币，如果留空或为null则需要手动扣取代币
+		/// 提供此参数将根据buy参数自动扣取代币和结束时赢得代币，如果留空或为null则需要手动操作
 		/// </param>
 		/// <returns>返回结果信息</returns>
 		internal static LotteryResult Start(LotteryBuy buy, GameTokenCoin gtc=null) {
-			if(gtc!=null){
-				buy.coinType ??= gtc.defCoinType;
-				gtc.ChangeCoin(buy.coin, false, buy.coinType);
-			}
+			buy.coinType ??= gtc.defCoinType;
+			gtc?.ChangeCoin(buy.coin, false, buy.coinType, cel: new() {
+					Note = "彩票购买",
+					OnlyNote = true
+				});
 			Random ran;
 			{
 				Random r = new();
@@ -219,8 +220,22 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 				);
 			}
 
+			ulong winCo;{
+				double wc = buy.coin;
+				if (mainWinCount != 0)
+					wc *= (ulong)(2 ^ mainWinCount);
+				if (deputyWinCount != 0)
+					wc *= Math.Pow(1.5, deputyWinCount);
+				if (mainWinCount == 0 && deputyWinCount == 0)
+					wc = 0;
+				winCo= (ulong)Math.Round(wc);
+			}
+			gtc?.ChangeCoin(winCo, true, buy.coinType, cel: new() {
+					Note = "彩票获奖",
+					OnlyNote = true
+				});
 			return new(
-				buy.lotteryNumber,
+				buy,
 				new() {
 					MainNumber = winMainNum,
 					DeputyNumber = winDepuNum
@@ -229,7 +244,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 				deputyWinCount,
 				mainWinLoc,
 				deputyWinLoc,
-				(ulong)Math.Round(buy.coin * (ulong)(2^mainWinCount) * Math.Pow(1.5,deputyWinCount))
+				winCo
 			);
 		}
 	}

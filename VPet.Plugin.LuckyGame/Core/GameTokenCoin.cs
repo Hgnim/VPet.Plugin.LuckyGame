@@ -431,6 +431,14 @@ namespace VPet.Plugin.LuckyGame.Core {
 					CoinChange = $"{(isAdd ? '+' : '-')}{value}",
 					Note = "未知代币变动（可能的漏洞）",
 				};
+				if (cel.OnlyNote) {
+					string note = cel.Note;
+					cel = new() {
+						CoinKey = Coin.CoinKey[(int)cType],
+						CoinChange = $"{(isAdd ? '+' : '-')}{value}",
+						Note = note
+					};
+				}
 				DataSave.CoinExchangeLog_Insert(cel);
 			}
 			return ret;
