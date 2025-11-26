@@ -49,4 +49,13 @@
 
 		<Message Text="runtime清理完成" Importance="high" />
 	</Target>
+	<!--在Release编译时清理无用的输出文件-->
+	<!--<Target Name="RemoveOtherFile" AfterTargets="AfterBuild" Condition="'$(Configuration)'=='Release'">
+		<Message Text="当前为Release模式，开始清理无用的输出文件..." Importance="high" />
+
+		<Delete Files="$(OutputPath)$(TargetName).pdb"/>
+		<Delete Files="$(OutputPath)$(TargetName).deps.json"/>
+
+		<Message Text="无用文件清理完成" Importance="high" />
+	</Target>-->
 </Project>

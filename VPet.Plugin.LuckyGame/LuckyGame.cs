@@ -2,15 +2,43 @@
 using Panuon.WPF;
 using Panuon.WPF.UI;
 using System;
+using System.Runtime.ConstrainedExecution;
+using System.Windows;
 using System.Windows.Controls;
 ﻿using VPet.Plugin.LuckyGame.Core;
 using VPet.Plugin.LuckyGame.Windows;
 using VPet_Simulator.Windows.Interface;
+using static VPet.Plugin.LuckyGame.Core.GameTokenCoin;
 
 namespace VPet.Plugin.LuckyGame
 {
     public class LuckyGame : MainPlugin {
-        public Fortune fortuneWindow;
+#if DEBUG
+		public struct ErrorHelper {
+			/// <summary>
+			/// 输出异常至消息框
+			/// </summary>
+			/// <param name="ex">异常</param>
+			public static void OutputError(Exception ex) {
+				string GetAllErrorMsg(Exception e) {
+					string message =
+	@$"错误信息：{ex.Message}
+堆栈跟踪：{ex.StackTrace}
+异常类型：{ex.GetType().Name}
+源：{ex.Source}
+
+";
+					if (ex.InnerException != null) {//递归获取内部异常信息
+						message += "内部异常信息：\n";
+						message += GetAllErrorMsg(ex.InnerException);
+					}
+					return message;
+				}
+				MessageBox.Show(GetAllErrorMsg(ex), "error", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+		}
+#endif
+		public Fortune fortuneWindow;
         public ArcadeExchange arcadeExchangeWindow;
         internal GameTokenCoin gtc;
         public LuckyGame(IMainWindow mainwin) : base(mainwin) {
@@ -18,9 +46,75 @@ namespace VPet.Plugin.LuckyGame
 		public override string PluginName => "LuckyGame";
         public override void LoadPlugin()
         {
+            try { 
             DataSave.EnsureDatabaseBackup();
-            DataSave.Read(MW, out GameTokenCoin.GameTokenCoin_Args gtcArg);
+            DataSave.Read(
+                MW, 
+                out DataSave.ReadResult rr, 
+                out GameTokenCoin.GameTokenCoin_Args gtcArg, 
+                out DataSave.CoinExchangeLog_CheckResult celcr
+            );
 			gtc = new GameTokenCoin(gtcArg);
+            if (!rr.IsFirst) {
+                if (celcr.haveDiff) {//是否与数据库存在差异
+                    for(byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
+                        bool isAdd;
+                        if (celcr.coinBack[b] > 0)
+                            isAdd = true;
+                        else if (celcr.coinBack[b] < 0)
+                            isAdd = false;
+                        else
+                            break;
+                        gtc.ChangeCoin(
+                            (ulong)Math.Abs(celcr.coinBack[b]),
+                            isAdd,
+                            (GameTokenCoin.Coin.CoinType)b,
+                            new() {
+								SaveTag = DataSave.ThisSaveTag,
+								CoinKey = Coin.CoinKey[b],
+								CoinChange = $"{(isAdd ? '+' : '-')}{Math.Abs(celcr.coinBack[b])}",
+								Note = "数据异常，代币回滚",
+							},
+                            true
+                        );
+                    }
+                    if (celcr.moneyBack != 0) {
+                        MW.Core.Save.Money += celcr.moneyBack;
+                        DataSave.CoinExchangeLog_Insert(new() {
+							SaveTag = DataSave.ThisSaveTag,
+							CoinKey = Coin.CoinKey[0],
+							CoinChange = "0",
+							MoneyChange = $"{(celcr.moneyBack>0 ? '+' : '-')}{Math.Abs(celcr.moneyBack)}",
+							Note = "数据异常，金钱回滚",
+						});
+					}
+					MessageBoxX.Show("检测到幸运游戏数据异常", "错误");//用于测试，后期将润色
+				}
+                else if (!celcr.haveData) {//数据库中是否存在数据
+                    /*gtc.coin.CoinBlack = 0;
+                    gtc.coin.CoinBlue = 0;
+                    gtc.coin.CoinGreen = 0;
+                    gtc.coin.CoinRed = 0;
+                    gtc.coin.CoinWhite = 0;*/
+                    for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
+                        ulong clearCoin = gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
+                        gtc.ChangeCoin(
+                            clearCoin,
+                            false,
+                            (GameTokenCoin.Coin.CoinType)b,
+                            new() {
+                                SaveTag = DataSave.ThisSaveTag,
+                                CoinKey = Coin.CoinKey[b],
+                                CoinChange = $"-{clearCoin}",
+                                Note = "数据丢失，代币清除",
+                            },
+                            true
+                        );
+                    }
+					MessageBoxX.Show("检测到幸运游戏数据丢失", "错误");//用于测试，后期将润色
+				}
+            }
+            }catch(Exception ex) { ErrorHelper.OutputError(ex); }
         }
 
         private void TokenExchangeMenu_Click(object sender, System.Windows.RoutedEventArgs e)
