@@ -60,6 +60,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			private ulong coinRed;
 			private ulong coinWhite;
 
+			//!注意，直接更改CoinXXX属性将会绕过很多逻辑，非必要时使用函数更改
 			/// <summary>
 			/// 代币-黑色
 			/// </summary>
@@ -213,7 +214,13 @@ namespace VPet.Plugin.LuckyGame.Core {
 						double moneyMinus = GetExchangeNeedMoney(value, cType);
 						if (!(MW.Core.Save.Money < moneyMinus)) {
 							MW.Core.Save.Money -= moneyMinus;
-							ChangeCoin(value, true, cType);
+							ChangeCoin(value, true, cType, new() {
+								SaveTag = DataSave.ThisSaveTag,
+								CoinKey = Coin.CoinKey[(int)cType],
+								CoinChange = $"+{value}",
+								MoneyChange = $"-{moneyMinus}",
+								Note = "兑换代币",
+							});
 							ret = 0;
 						}
 						else
@@ -221,7 +228,13 @@ namespace VPet.Plugin.LuckyGame.Core {
 					}
 					else {
 						double moneyAdd = GetExchangeGetMoney(value, cType);
-						if (ChangeCoin(value, false, cType) == 0) {
+						if (ChangeCoin(value, false, cType, new(){
+							SaveTag = DataSave.ThisSaveTag,
+							CoinKey = Coin.CoinKey[(int)cType],
+							CoinChange = $"-{value}",
+							MoneyChange = $"+{moneyAdd}",
+							Note = "回收代币",
+						}) == 0) {
 							MW.Core.Save.Money += moneyAdd;
 							ret = 0;
 						}
@@ -346,6 +359,8 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 代币类型<br/>
 		/// 留空或为null则使用默认值
 		/// </param>
+		/// <param name="cel">用于编写日志</param>
+		/// <param name="force">强制扣取代币，不管其是否不够扣取</param>
 		/// <returns>
 		/// 返回值：<br/>
 		/// 0：成功<br/>
@@ -353,7 +368,9 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 2：value参数值等于0<br/>
 		/// 3：代币不足<br/>
 		/// </returns>
-		internal byte ChangeCoin(ulong value, bool isAdd, Coin.CoinType? cType=null) {
+#nullable enable
+		internal byte ChangeCoin(ulong value, bool isAdd, Coin.CoinType? cType=null, DataSave.CoinExchangeLog? cel=null, bool force=false) {
+#nullable disable
 			cType ??= defCoinType;
 			byte ret = 1;
 			ulong action(ulong c) {
@@ -365,6 +382,10 @@ namespace VPet.Plugin.LuckyGame.Core {
 					else {
 						if (c - value >= 0) {
 							c -= value;
+							ret = 0;
+						}
+						else if (force) {
+							c = 0;
 							ret = 0;
 						}
 						else
@@ -402,6 +423,23 @@ namespace VPet.Plugin.LuckyGame.Core {
 					if (ret == 0)
 						coin.CoinWhite = output;
 					break;
+			}
+			if (ret == 0) {
+				cel ??= new() {
+					SaveTag = DataSave.ThisSaveTag,
+					CoinKey = Coin.CoinKey[(int)cType],
+					CoinChange = $"{(isAdd ? '+' : '-')}{value}",
+					Note = "未知代币变动（可能的漏洞）",
+				};
+				if (cel.OnlyNote) {
+					string note = cel.Note;
+					cel = new() {
+						CoinKey = Coin.CoinKey[(int)cType],
+						CoinChange = $"{(isAdd ? '+' : '-')}{value}",
+						Note = note
+					};
+				}
+				DataSave.CoinExchangeLog_Insert(cel);
 			}
 			return ret;
 		}
