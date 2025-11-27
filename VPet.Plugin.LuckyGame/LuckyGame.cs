@@ -7,6 +7,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Windows;
 using System.Windows.Controls;
 ﻿using VPet.Plugin.LuckyGame.Core;
+using VPet.Plugin.LuckyGame.Core.Tool;
 using VPet.Plugin.LuckyGame.Windows;
 using VPet_Simulator.Windows.Interface;
 using static VPet.Plugin.LuckyGame.Core.GameTokenCoin;
@@ -115,7 +116,7 @@ namespace VPet.Plugin.LuckyGame
 					MessageBoxX.Show("检测到幸运游戏数据丢失", "错误");//用于测试，后期将润色
 				}
             }
-            }catch(Exception ex) { ErrorHelper.OutputError(ex); }
+            }catch(Exception ex) { ErrorHelper.ShowError(ex); }
         }
 
         private void TokenExchangeMenu_Click(object sender, System.Windows.RoutedEventArgs e)

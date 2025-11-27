@@ -23,8 +23,9 @@ namespace VPet.Plugin.LuckyGame.Windows
         private Point startPoint;
         private bool isDragging = false;
         private ulong coin = 1;
-        private ushort place = 0, allPlace = 8;
+        private ushort place = 1, allPlace = 6;
         private bool UIInitialized = false;
+        private readonly GameTokenCoin gtc;
         // 转盘配置
         private int sectorCount => prizes.Count;
 
@@ -47,10 +48,12 @@ namespace VPet.Plugin.LuckyGame.Windows
 
         internal Fortune(GameTokenCoin gtc)
         {
+            this.gtc = gtc;
             InitializeComponent();
             UIInitialized = true;
             InitializeGame();
             LoadSettings();
+            InitializeWheelUI();
         }
 
         private void InitializeGame()
@@ -66,9 +69,6 @@ namespace VPet.Plugin.LuckyGame.Windows
 
             // 初始化奖品列表
             InitializePrizes();
-
-            // 默认显示设置界面
-            ShowSettingsView();
         }
 
         private void InitializePrizes()
@@ -82,14 +82,7 @@ namespace VPet.Plugin.LuckyGame.Windows
         }
 
         private void InitializeWheelUI()
-        {
-            WheelBorder.Visibility = Visibility.Visible;
-            ControlPanel.Visibility = Visibility.Visible;
-            SettingBorder.Visibility = Visibility.Collapsed;
-
-            // 初始化转盘数据
-            luckyWheel.PlaceCoin(coin, place, allPlace);
-
+        { 
             // 创建旋转变换
             wheelTransform = new RotateTransform();
             WheelCanvas.RenderTransform = wheelTransform;
@@ -309,11 +302,30 @@ namespace VPet.Plugin.LuckyGame.Windows
             try
             {
                 // 开始转盘旋转
-                float finalAngle = await luckyWheel.StartWheel(60);
+                var game = new LuckyWheel.LuckyWheelBuy
+                {
+                    Coin = coin,
+                    Place = place,
+                    AllPlace = allPlace,
+                    CoinType = gtc.defCoinType
+                };
+                var buyresult = luckyWheel.PlaceCoin(game, gtc);
+                switch (buyresult)
+                {
+                    case 0:break;
+                    case 1:
+                        MessageBoxX.Show("出现未知错误，无法进行抽奖".Translate(), "错误".Translate());
+                        return;
+                    case 2:
+                        MessageBoxX.Show("押注代币为0，无法进行抽奖".Translate(), "错误".Translate());
+                        return;
+                    case 3:
+                        MessageBoxX.Show("代币余额不足，无法进行抽奖".Translate(), "错误".Translate());
+                        return;
+                }
+                var result = await luckyWheel.StartWheel(game);
 
-                // 显示结果
-                int resultIndex = CalculateResult(finalAngle);
-                ShowResult(prizes[resultIndex]);
+                ShowResult(result);
             }
             catch (Exception ex)
             {
@@ -328,20 +340,20 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
         }
 
-        private int CalculateResult(float finalAngle)
+        private ushort CalculateResult(float finalAngle)
         {
             double anglePerSector = 360.0 / sectorCount;
             // 计算落在哪个扇形（考虑指针在顶部）
-            int resultIndex = (int)((360 - finalAngle % 360) / anglePerSector) % sectorCount;
+            ushort resultIndex = Convert.ToUInt16((int)((360 - finalAngle % 360) / anglePerSector) % sectorCount);
             return resultIndex;
         }
 
-        private void ShowResult(string resultString)
+        private void ShowResult(LuckyWheel.LuckyWheelResult result)
         {
             try
             {
-                var result = Convert.ToUInt16(resultString);
-                var prize = luckyWheel.WinCoin(result);
+                var resultIndex = CalculateResult(result.StopAngle);
+                var prize = LuckyWheel.WinCoin(resultIndex,result,gtc);
 
                 MessageBoxX.Show("恭喜您获得: {0} 代币!".Translate(prize), "抽奖结果".Translate());
             }
@@ -357,84 +369,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             if (!isSpinning)
             {
                 wheelTransform.Angle = 0;
-                luckyWheel.PlaceCoin(coin, place, allPlace);
                 isInitialised = true;
-            }
-        }
-
-        private void SettingsButton_Click(object sender, RoutedEventArgs e)
-        {
-            ShowSettingsView();
-        }
-
-        private void SaveSettingsButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (ValidateAndSaveSettings())
-            {
-                ShowWheelView();
-                MessageBoxX.Show("设置保存成功！".Translate(), "提示".Translate());
-            }
-        }
-
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            if(!ValidateAndSaveSettings())
-            {
-                return;
-            }
-            ShowWheelView();
-        }
-
-        private bool ValidateAndSaveSettings()
-        {
-            try
-            {
-                var tokenCost = TokenCostText.Value;
-                // 验证代币数量
-                if (tokenCost <= 0)
-                {
-                    MessageBoxX.Show("代币数量必须是大于0的整数".Translate(), "错误".Translate());
-                    return false;
-                }
-                var predictPoint = PredictionPointsText.Value;
-                // 验证预测点数
-                if (predictPoint < 0 || predictPoint > SectorCount)
-                {
-                    MessageBoxX.Show("预测点数必须在0-转盘格数之间".Translate(), "错误".Translate());
-                    return false;
-                }
-
-                // 获取选中的转盘格数
-                if (SectorCountComboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Tag != null)
-                {
-                    int sectorCount = int.Parse(selectedItem.Tag.ToString());
-                    if (sectorCount < 4 || sectorCount > 16)
-                    {
-                        MessageBoxX.Show("转盘格数必须在4-16之间".Translate(), "错误".Translate());
-                        return false;
-                    }
-
-                    SectorCount = sectorCount;
-                }
-                else
-                {
-                    MessageBoxX.Show("请选择有效的转盘格数".Translate(), "错误".Translate());
-                    return false;
-                }
-
-                // 保存设置
-                TokenCost = Convert.ToInt32(tokenCost);
-                PredictionPoints = Convert.ToInt32(predictPoint);
-
-                // 重新初始化奖品列表
-                InitializePrizes();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                MessageBoxX.Show($"保存设置时出错: {ex.Message}".Translate(), "错误".Translate());
-                return false;
             }
         }
 
@@ -462,30 +397,6 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
         }
 
-        private void ShowSettingsView()
-        {
-            SettingBorder.Visibility = Visibility.Visible;
-            WheelBorder.Visibility = Visibility.Collapsed;
-            ControlPanel.Visibility = Visibility.Collapsed;
-        }
-
-        private void ShowWheelView()
-        {
-            SettingBorder.Visibility = Visibility.Collapsed;
-            WheelBorder.Visibility = Visibility.Visible;
-            ControlPanel.Visibility = Visibility.Visible;
-
-            if (!isInitialised)
-            {
-                InitializeWheelUI();
-            }
-            else
-            {
-                // 重新绘制转盘以适应新的设置
-                DrawWheelSectors();
-            }
-        }
-
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             animationTimer?.Stop();
@@ -505,6 +416,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             this.Close();
         }
 
+        #region 窗口拖动
         private void DragArea_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
@@ -536,17 +448,12 @@ namespace VPet.Plugin.LuckyGame.Windows
             isDragging = false;
             ((UIElement)sender).ReleaseMouseCapture();
         }
+        #endregion
 
         private void TokenCostText_ValueChanged(object sender, Panuon.WPF.SelectedValueChangedRoutedEventArgs<double?> e)
         {
             if (!UIInitialized) return;
-            SettingStatusText.Text = "设置已修改，点击保存应用更改".Translate();
             TokenCost = TokenCostText.Value.HasValue ? Convert.ToInt32(TokenCostText.Value.Value) : 1;
-        }
-
-        private void SettingButtton_Click(object sender, RoutedEventArgs e)
-        {
-            ShowSettingsView();
         }
 
         private void SectorCountComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -554,9 +461,10 @@ namespace VPet.Plugin.LuckyGame.Windows
             if (!UIInitialized) return;
             if (SectorCountComboBox.SelectedItem is ComboBoxItem selectedItem)
             {
-                SettingStatusText.Text = $"转盘格数已选择: {selectedItem.Content}".Translate();
                 SectorCount = selectedItem.Tag != null ? int.Parse(selectedItem.Tag.ToString()) : 8;
                 PredictionPointsText.Maximum = SectorCount;
+                InitializePrizes();
+                DrawWheelSectors();
             }
         }
     }

@@ -76,6 +76,16 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// 转盘当前是否在运行
 		/// </summary>
 		internal bool IsRunning => isRunning;
+
+		internal byte PlaceCoin(LuckyWheelBuy lwb,GameTokenCoin gtc)
+		{
+            lwb.CoinType ??= gtc.defCoinType;
+            return gtc.ChangeCoin(lwb.Coin, false, lwb.CoinType, cel: new()
+            {
+                Note = "幸运转盘购买",
+                OnlyNote = true
+            });
+        }
 		/// <summary>
 		/// 开始转盘
 		/// </summary>
@@ -87,13 +97,8 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// <param name="rate">每秒计算次数</param>
 		/// <param name="MaxSpeed">最大速度，如果留空则根据rate计算</param>
 		/// <returns>返回转盘停下时的角度</returns>
-		internal async Task<LuckyWheelResult> StartWheel(LuckyWheelBuy lwb, GameTokenCoin gtc = null, ushort rate=24,int? MaxSpeed=null) {
+		internal async Task<LuckyWheelResult> StartWheel(LuckyWheelBuy lwb,ushort rate=24,int? MaxSpeed=null) {
 			isRunning = true;
-			lwb.CoinType ??= gtc.defCoinType;
-			gtc?.ChangeCoin(lwb.Coin, false, lwb.CoinType, cel: new() {
-				Note = "幸运转盘购买",
-				OnlyNote = true
-			});
 
 			Random ran = new();
 			int maxSpeed = MaxSpeed is not null and > 24 && MaxSpeed > rate
