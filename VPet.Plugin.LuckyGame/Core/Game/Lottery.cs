@@ -44,6 +44,35 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 				}
 				get => deputyNumber;
 			}
+
+			internal static LotteryNumber GetRandomNumber(){
+				Random ran = new();
+				byte[] mn = new byte[6];
+				byte[] dn = new byte[2];
+				void action(ref byte[] num,int min,int max) {
+					for (byte b = 0; b < num.Length; b++) {
+						bool pass;
+						byte ranNum;
+						do {
+							pass = true;
+							ranNum = (byte)ran.Next(min, max);
+							for (byte b2 = 0; b2 < b; b2++) {
+								if (num[b2] == ranNum) {
+									pass = false;
+									break;
+								}
+							}
+						} while (!pass);
+						num[b] = ranNum;
+					}
+				}
+				action(ref mn, 0, 30 + 1);
+				action(ref dn, 0, 10);
+				return new() {
+					mainNumber = mn,
+					deputyNumber = dn
+				};
+			}
 		}
 		/// <summary>
 		/// 彩票购买类
