@@ -22,6 +22,14 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             MainWindow = mainWindow;
             TokenCoin = gtc;
+            gtc.coin.OnCoinChange += (type, amount, rate, fee) =>
+            {
+                // 在UI线程上更新显示
+                Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    UpdateDisplay();
+                }));
+            };
             InitializeComponent();
             InitializeArcade();
         }
@@ -31,7 +39,6 @@ namespace VPet.Plugin.LuckyGame.Windows
             foreach(string name in GameTokenCoin.Coin.CoinName)
 				CoinTypeSelect.Items.Add(name);
             CoinTypeSelect.SelectedIndex = (int)TokenCoin.defCoinType;
-
 			UpdateDisplay();
         }
 

@@ -380,7 +380,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 						ret = 0;
 					}
 					else {
-						if (c - value >= 0) {
+						if (c >= value) {
 							c -= value;
 							ret = 0;
 						}

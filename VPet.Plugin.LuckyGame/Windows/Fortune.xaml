@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         xmlns:pu="clr-namespace:Panuon.WPF.UI;assembly=Panuon.WPF.UI"
-        MinHeight="500" MinWidth="500" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight"
+        MinHeight="500" MinWidth="700" MaxHeight="600" MaxWidth="800" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight"
         Background="Transparent" AllowsTransparency="True" WindowStyle="None">
     <Window.Resources>
         <ResourceDictionary Source="/VPet-Simulator.Windows.Interface;component/ResourceStyle.xaml" />

@@ -344,7 +344,7 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             double anglePerSector = 360.0 / sectorCount;
             // 计算落在哪个扇形（考虑指针在顶部）
-            ushort resultIndex = Convert.ToUInt16((int)((360 - finalAngle % 360) / anglePerSector) % sectorCount);
+            ushort resultIndex = Convert.ToUInt16((int)((360 - finalAngle % 360) / anglePerSector) % sectorCount + 1);
             return resultIndex;
         }
 
@@ -354,7 +354,6 @@ namespace VPet.Plugin.LuckyGame.Windows
             {
                 var resultIndex = CalculateResult(result.StopAngle);
                 var prize = LuckyWheel.WinCoin(resultIndex,result,gtc);
-
                 MessageBoxX.Show("恭喜您获得: {0} 代币!".Translate(prize), "抽奖结果".Translate());
             }
             catch (Exception ex)
