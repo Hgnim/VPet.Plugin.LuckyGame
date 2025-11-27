@@ -1,4 +1,5 @@
-﻿using LinePutScript.Localization.WPF;
+﻿using LinePutScript;
+using LinePutScript.Localization.WPF;
 using Panuon.WPF;
 using Panuon.WPF.UI;
 using System;
@@ -108,6 +109,7 @@ namespace VPet.Plugin.LuckyGame
 		public override void EndGame() {
             DataSave.Save(MW, gtc);
 			base.EndGame();
+            var birthday = MW.GameSavesData[(gdat)"birthday"];
 		}
     }
 }
