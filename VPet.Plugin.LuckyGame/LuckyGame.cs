@@ -17,6 +17,7 @@ namespace VPet.Plugin.LuckyGame
     public class LuckyGame : MainPlugin {
 		public Fortune fortuneWindow;
         public ArcadeExchange arcadeExchangeWindow;
+        public LotteryPage lotteryWindow;
         internal GameTokenCoin gtc;
         public LuckyGame(IMainWindow mainwin) : base(mainwin) {
 		}
@@ -136,6 +137,27 @@ namespace VPet.Plugin.LuckyGame
             }
         }
 
+        private void LotteryMenu_Click(object sender, RoutedEventArgs e)
+        {
+            if(lotteryWindow != null && lotteryWindow.IsVisible)
+            {
+                lotteryWindow.Activate();
+                return;
+            }
+            else if(lotteryWindow != null && !lotteryWindow.IsVisible)
+            {
+                lotteryWindow.Close();
+                lotteryWindow = null;
+                lotteryWindow = new LotteryPage(gtc);
+                lotteryWindow.Show();
+            }
+            else
+            {
+                lotteryWindow = new LotteryPage(gtc);
+                lotteryWindow.Show();
+            }
+        }
+
         public override void Setting()
         {
             Fortune_Click(this, null);
@@ -162,8 +184,15 @@ namespace VPet.Plugin.LuckyGame
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 };
                 TokenExchangeMenu.Click += TokenExchangeMenu_Click;
+                var LotteryMenu = new MenuItem
+                {
+                    Header = "Lottery".Translate(),
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                };
+                LotteryMenu.Click += LotteryMenu_Click;
                 menu.Items.Add(fortune);
                 menu.Items.Add(TokenExchangeMenu);
+                menu.Items.Add(LotteryMenu);
                 MW.Main.ToolBar.MenuDIY.Items.Add(menu);
             }
             catch (Exception ex)
@@ -172,7 +201,7 @@ namespace VPet.Plugin.LuckyGame
             }
         }
 
-		public override void Save() {
+        public override void Save() {
             DataSave.Save(MW, gtc);
 			base.Save();
 		}
