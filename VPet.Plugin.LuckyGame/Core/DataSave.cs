@@ -228,11 +228,13 @@ namespace VPet.Plugin.LuckyGame.Core {
 							throw new Exception("keyToType参数异常");
 						}
 						while (reader.Read()) {
-							if (!celcr.haveDiff) celcr.haveDiff = true;
-							long cc = Convert.ToInt64(reader["CoinChange"]);
-							double? mc = mc = double.TryParse(reader["MoneyChange"].ToString(), out double mc_res) ? mc_res : null;
-							celcr.coinBack[(int)keyToType(reader["CoinKey"].ToString())] += cc;
-							if (mc != null) celcr.moneyBack += (double)mc;
+							if (reader["Note"].ToString().Substring(0, 4) is not "数据异常" and "数据丢失") {//避免重复读取修复日志
+								if (!celcr.haveDiff) celcr.haveDiff = true;
+								long cc = Convert.ToInt64(reader["CoinChange"]);
+								double? mc = mc = double.TryParse(reader["MoneyChange"].ToString(), out double mc_res) ? mc_res : null;
+								celcr.coinBack[(int)keyToType(reader["CoinKey"].ToString())] += cc;
+								if (mc != null) celcr.moneyBack += (double)mc;
+							}
 						}
 					}
 				}

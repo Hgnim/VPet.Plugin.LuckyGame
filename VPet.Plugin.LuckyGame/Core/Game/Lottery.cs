@@ -257,10 +257,14 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 
 			ulong winCo;{
 				double wc = buy.coin;
-				if (mainWinCount != 0)
-					wc *= (ulong)(2 ^ mainWinCount);
-				if (deputyWinCount != 0)
-					wc *= Math.Pow(1.5, deputyWinCount);
+				if (mainWinCount != 0) {
+					wc = Math.Pow(mainWinCount, wc);
+				}
+				if (deputyWinCount != 0) {
+					if (mainWinCount != 0 || deputyWinCount == 2) {
+						wc *= Math.Pow(1.5, deputyWinCount);
+					}
+				}
 				if (mainWinCount == 0 && deputyWinCount == 0)
 					wc = 0;
 				winCo= (ulong)Math.Round(wc);
