@@ -77,6 +77,12 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// </summary>
 		internal bool IsRunning => isRunning;
 
+		/// <summary>
+		/// 押下代币
+		/// </summary>
+		/// <param name="lwb">购买信息</param>
+		/// <param name="gtc">代币类实例</param>
+		/// <returns>与gtc.ChangeCoin返回结果一致</returns>
 		internal byte PlaceCoin(LuckyWheelBuy lwb,GameTokenCoin gtc)
 		{
             lwb.CoinType ??= gtc.defCoinType;
@@ -90,33 +96,32 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// 开始转盘
 		/// </summary>
 		/// <param name="lwb">购买信息</param>
-		/// <param name="gtc">
-		/// 游戏代币数据<br/>
-		/// 提供此参数将根据lwb参数自动扣取代币，如果留空或为null则需要手动操作
-		/// </param>
 		/// <param name="rate">每秒计算次数</param>
 		/// <param name="MaxSpeed">最大速度，如果留空则根据rate计算</param>
 		/// <returns>返回转盘停下时的角度</returns>
-		internal async Task<LuckyWheelResult> StartWheel(LuckyWheelBuy lwb,ushort rate=24,int? MaxSpeed=null) {
+		internal async Task<LuckyWheelResult> StartWheel(LuckyWheelBuy lwb,ushort rate=60,int? MaxSpeed=null) {
 			isRunning = true;
 
 			Random ran = new();
-			int maxSpeed = MaxSpeed is not null and > 24 && MaxSpeed > rate
-								? (int)MaxSpeed 
-								: rate * 2;
+			int maxSpeed = MaxSpeed != null && MaxSpeed > rate
+								? (int)MaxSpeed
+								: rate + (-rate + 200) * 2;//函数y=x+(-x+100)*2
 			float speed= ran.Next(rate, maxSpeed) + ran.NextSingle();
 			await Task.Run(() => {
+				float r1 = ran.Next(1, 5);
+				float r2 = ran.Next(1, 3);
+				float r3 = (ran.Next(10, 50 + 1) * 0.01f);
 				while (speed >= 0) {
 					ra.Angle += speed;
 					if (speed > rate) {
-						speed -= (ran.Next(90, 100 + 1) * 0.01f) * (maxSpeed / (rate/3.5f));
+						speed -= (ran.Next(90, 100 + 1) * 0.01f) * (float)(maxSpeed / (float)(rate * r1));
 					}
 					else {
-						if (speed > 1) {
-							speed -= ran.NextSingle() * (speed * 0.01f);
+						if (!(speed < r3)) {
+							speed -= ((speed / rate) * (float)(rate / (float)(rate * r2)));
 						}
 						else {
-							speed -= ran.Next(10 + 1) * 0.01f;
+							speed -= r3 / rate;
 						}
 					}
 						

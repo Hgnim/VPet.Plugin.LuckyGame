@@ -15,31 +15,6 @@ using static VPet.Plugin.LuckyGame.Core.GameTokenCoin;
 namespace VPet.Plugin.LuckyGame
 {
     public class LuckyGame : MainPlugin {
-#if DEBUG
-		public struct ErrorHelper {
-			/// <summary>
-			/// 输出异常至消息框
-			/// </summary>
-			/// <param name="ex">异常</param>
-			public static void OutputError(Exception ex) {
-				string GetAllErrorMsg(Exception e) {
-					string message =
-	@$"错误信息：{ex.Message}
-堆栈跟踪：{ex.StackTrace}
-异常类型：{ex.GetType().Name}
-源：{ex.Source}
-
-";
-					if (ex.InnerException != null) {//递归获取内部异常信息
-						message += "内部异常信息：\n";
-						message += GetAllErrorMsg(ex.InnerException);
-					}
-					return message;
-				}
-				MessageBox.Show(GetAllErrorMsg(ex), "error", MessageBoxButton.OK, MessageBoxImage.Error);
-			}
-		}
-#endif
 		public Fortune fortuneWindow;
         public ArcadeExchange arcadeExchangeWindow;
         internal GameTokenCoin gtc;
@@ -204,7 +179,6 @@ namespace VPet.Plugin.LuckyGame
 		public override void EndGame() {
             DataSave.Save(MW, gtc);
 			base.EndGame();
-            var birthday = MW.GameSavesData[(gdat)"birthday"];
 		}
     }
 }
