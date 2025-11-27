@@ -73,6 +73,12 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 					deputyNumber = dn
 				};
 			}
+            public override string ToString()
+            {
+                string mainNumStr = string.Join(" ", MainNumber);
+				string deputyNumStr = string.Join(" ", DeputyNumber);
+				return $"主号码: [{mainNumStr}] 副号码: [{deputyNumStr}]";
+            }
 		}
 		/// <summary>
 		/// 彩票购买类

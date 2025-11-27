@@ -20,8 +20,6 @@ namespace VPet.Plugin.LuckyGame.Windows
         private RotateTransform wheelTransform;
         private bool isSpinning = false;
         private bool isInitialised = false;
-        private Point startPoint;
-        private bool isDragging = false;
         private ulong coin = 1;
         private ushort place = 1, allPlace = 6;
         private bool UIInitialized = false;
@@ -449,14 +447,26 @@ namespace VPet.Plugin.LuckyGame.Windows
         }
         #endregion
 
+        private Point startPoint;
+        private bool isDragging = false;
+
         private void TokenCostText_ValueChanged(object sender, Panuon.WPF.SelectedValueChangedRoutedEventArgs<double?> e)
         {
+            if (isSpinning) return;
             if (!UIInitialized) return;
             TokenCost = TokenCostText.Value.HasValue ? Convert.ToInt32(TokenCostText.Value.Value) : 1;
         }
 
+        private void PredictionPointsText_ValueChanged(object sender, Panuon.WPF.SelectedValueChangedRoutedEventArgs<double?> e)
+        {
+            if (isSpinning) return;
+            if (!UIInitialized) return;
+            PredictionPoints = PredictionPointsText.Value.HasValue ? Convert.ToInt32(PredictionPointsText.Value.Value) : 1;
+        }
+
         private void SectorCountComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (isSpinning) return;
             if (!UIInitialized) return;
             if (SectorCountComboBox.SelectedItem is ComboBoxItem selectedItem)
             {
