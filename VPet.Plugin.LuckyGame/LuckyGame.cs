@@ -3,10 +3,12 @@ using LinePutScript.Localization.WPF;
 using Panuon.WPF;
 using Panuon.WPF.UI;
 using System;
+using System.Collections.Generic;
 using System.Runtime.ConstrainedExecution;
 using System.Windows;
 using System.Windows.Controls;
 ﻿using VPet.Plugin.LuckyGame.Core;
+using VPet.Plugin.LuckyGame.Core.Game;
 using VPet.Plugin.LuckyGame.Core.Tool;
 using VPet.Plugin.LuckyGame.Windows;
 using VPet_Simulator.Windows.Interface;
@@ -18,22 +20,43 @@ namespace VPet.Plugin.LuckyGame
 		public Fortune fortuneWindow;
         public ArcadeExchange arcadeExchangeWindow;
         public LotteryPage lotteryWindow;
-        internal GameTokenCoin gtc;
+        internal Data data;
         public LuckyGame(IMainWindow mainwin) : base(mainwin) {
 		}
 		public override string PluginName => "LuckyGame";
         public override void LoadPlugin()
         {
-            try { 
+            //try { 
             DataSave.EnsureDatabaseBackup();
             DataSave.Read(
                 MW, 
                 out DataSave.ReadResult rr, 
                 out GameTokenCoin.GameTokenCoin_Args gtcArg, 
-                out DataSave.CoinExchangeLog_CheckResult celcr
+                out DataSave.CoinExchangeLog_CheckResult celcr,
+                out List<Lottery.LotteryBuy> lllb
             );
-			gtc = new GameTokenCoin(gtcArg);
+            data = new() {
+                gtc = new GameTokenCoin(gtcArg),
+                lottery = new() { lotteryHave = lllb },
+            };
             if (!rr.IsFirst) {
+                void ClearCoin(string note) {
+					for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
+						ulong clearCoin = data.gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
+						data.gtc.ChangeCoin(
+							clearCoin,
+							false,
+							(GameTokenCoin.Coin.CoinType)b,
+							new() {
+								SaveTag = DataSave.ThisSaveTag,
+								CoinKey = Coin.CoinKey[b],
+								CoinChange = $"-{clearCoin}",
+								Note = note,
+							},
+							true
+						);
+					}
+				}
                 if (celcr.haveDiff) {//是否与数据库存在差异
                     for(byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
                         bool isAdd;
@@ -43,7 +66,7 @@ namespace VPet.Plugin.LuckyGame
                             isAdd = false;
                         else
                             break;
-                        gtc.ChangeCoin(
+                        data.gtc.ChangeCoin(
                             (ulong)Math.Abs(celcr.coinBack[b]),
                             isAdd,
                             (GameTokenCoin.Coin.CoinType)b,
@@ -51,7 +74,7 @@ namespace VPet.Plugin.LuckyGame
 								SaveTag = DataSave.ThisSaveTag,
 								CoinKey = Coin.CoinKey[b],
 								CoinChange = $"{(isAdd ? '+' : '-')}{Math.Abs(celcr.coinBack[b])}",
-								Note = "数据异常，代币回滚",
+								Note = "数据异常，代币回滚",//注意此行不要翻译，在别处有对其文本的判断
 							},
                             true
                         );
@@ -63,7 +86,7 @@ namespace VPet.Plugin.LuckyGame
 							CoinKey = Coin.CoinKey[0],
 							CoinChange = "0",
 							MoneyChange = $"{(celcr.moneyBack>0 ? '+' : '-')}{Math.Abs(celcr.moneyBack)}",
-							Note = "数据异常，金钱回滚",
+							Note = "数据异常，金钱回滚",//注意此行不要翻译，在别处有对其文本的判断
 						});
 					}
 					MessageBoxX.Show("检测到幸运游戏数据异常", "错误");//用于测试，后期将润色
@@ -74,25 +97,15 @@ namespace VPet.Plugin.LuckyGame
                     gtc.coin.CoinGreen = 0;
                     gtc.coin.CoinRed = 0;
                     gtc.coin.CoinWhite = 0;*/
-                    for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
-                        ulong clearCoin = gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
-                        gtc.ChangeCoin(
-                            clearCoin,
-                            false,
-                            (GameTokenCoin.Coin.CoinType)b,
-                            new() {
-                                SaveTag = DataSave.ThisSaveTag,
-                                CoinKey = Coin.CoinKey[b],
-                                CoinChange = $"-{clearCoin}",
-                                Note = "数据丢失，代币清除",
-                            },
-                            true
-                        );
-                    }
+                    ClearCoin("数据丢失，代币清除");//注意此行不要翻译，在别处有对其文本的判断
 					MessageBoxX.Show("检测到幸运游戏数据丢失", "错误");//用于测试，后期将润色
 				}
+                if (rr.DbHashPass == false) {
+					ClearCoin("数据篡改，代币清除");//注意此行不要翻译，在别处有对其文本的判断
+					MessageBoxX.Show("检测到幸运游戏数据被篡改", "错误");//用于测试，后期将润色
+				}
             }
-            }catch(Exception ex) { ErrorHelper.ShowError(ex); }
+            //}catch(Exception ex) { ErrorHelper.ShowError(ex); }
         }
 
         private void TokenExchangeMenu_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -106,12 +119,12 @@ namespace VPet.Plugin.LuckyGame
             {
                 arcadeExchangeWindow.Close();
                 arcadeExchangeWindow = null;
-                arcadeExchangeWindow = new ArcadeExchange(MW, gtc);
+                arcadeExchangeWindow = new ArcadeExchange(MW, data.gtc);
                 arcadeExchangeWindow.Show();
             }
             else
             {
-                arcadeExchangeWindow = new ArcadeExchange(MW, gtc);
+                arcadeExchangeWindow = new ArcadeExchange(MW, data.gtc);
                 arcadeExchangeWindow.Show();
             }
         }
@@ -127,12 +140,12 @@ namespace VPet.Plugin.LuckyGame
             {
                 fortuneWindow.Close();
                 fortuneWindow = null;
-                fortuneWindow = new Fortune(gtc);
+                fortuneWindow = new Fortune(data.gtc);
                 fortuneWindow.Show();
             }
             else
             {
-                fortuneWindow = new Fortune(gtc);
+                fortuneWindow = new Fortune(data.gtc);
                 fortuneWindow.Show();
             }
         }
@@ -148,12 +161,12 @@ namespace VPet.Plugin.LuckyGame
             {
                 lotteryWindow.Close();
                 lotteryWindow = null;
-                lotteryWindow = new LotteryPage(gtc);
+                lotteryWindow = new LotteryPage(data.gtc);
                 lotteryWindow.Show();
             }
             else
             {
-                lotteryWindow = new LotteryPage(gtc);
+                lotteryWindow = new LotteryPage(data.gtc);
                 lotteryWindow.Show();
             }
         }
@@ -202,11 +215,11 @@ namespace VPet.Plugin.LuckyGame
         }
 
         public override void Save() {
-            DataSave.Save(MW, gtc);
+            DataSave.Save(MW, data);
 			base.Save();
 		}
 		public override void EndGame() {
-            DataSave.Save(MW, gtc);
+            DataSave.Save(MW, data);
 			base.EndGame();
 		}
     }

@@ -107,7 +107,8 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 
 			private bool bought = false;
 			/// <summary>
-			/// 表示当前彩票是否是已购买状态
+			/// 表示当前彩票是否是已购买状态<br/>
+			/// 该值仅可在当下使用，不会持久化保存，并且在后续开奖等函数中不会对其进行判断。
 			/// </summary>
 			internal bool Bought => bought;
 

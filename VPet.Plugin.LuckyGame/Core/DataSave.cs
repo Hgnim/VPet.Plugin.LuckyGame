@@ -1,9 +1,12 @@
 ﻿using LinePutScript.Localization.WPF;
 using Panuon.WPF.UI;
 using System;
+using System.Collections.Generic;
 using System.Data.SQLite;
+using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
-using System.Windows;
+using VPet.Plugin.LuckyGame.Core.Game;
 using VPet_Simulator.Windows.Interface;
 
 namespace VPet.Plugin.LuckyGame.Core {
@@ -12,28 +15,37 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// <summary>
 		/// 保存数据
 		/// </summary>
-		internal static void Save(IMainWindow MW,GameTokenCoin gtc) {
-			MW.GameSavesData[mainKey][(LinePutScript.gstr)"bd"] = ThisSaveTag_DB;
+		internal static void Save(IMainWindow MW, Data dat) {
+			MW.GameSavesData[mainKey][(LinePutScript.gstr)"bd"] = ThisSaveTag_BD;
 			for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++)
 				MW.GameSavesData[mainKey][(LinePutScript.gi64)GameTokenCoin.Coin.CoinKey[b]] =
-					(long)gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
-			MW.GameSavesData[mainKey][(LinePutScript.gint)"DefCoinType"] = (int)gtc.defCoinType;
+					(long)dat.gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
+			MW.GameSavesData[mainKey][(LinePutScript.gint)"DefCoinType"] = (int)dat.gtc.defCoinType;
 			MW.GameSavesData[mainKey][(LinePutScript.gi64)"SaveTime"] = TimeData;
+			LotteryHave_Save([.. dat.lottery.lotteryHave]);
+
+			DatabaseHash_Save(MW);//保存哈希值，最后执行
 		}
 		internal class ReadResult {
 			/// <summary>
 			/// 是否为第一次启动
 			/// </summary>
-			internal bool IsFirst { get; set; }
+			internal required bool IsFirst { get; set; }
+
+			/// <summary>
+			/// 数据库哈希检查是否通过
+			/// </summary>
+			internal required bool? DbHashPass {  get; set; }
 		}
 		/// <summary>
 		/// 读取数据
 		/// </summary>
 		internal static void Read(
-			IMainWindow MW, 
+			IMainWindow MW,
 			out ReadResult rr,
-			out GameTokenCoin.GameTokenCoin_Args gtcArg, 
-			out CoinExchangeLog_CheckResult celcr
+			out GameTokenCoin.GameTokenCoin_Args gtcArg,
+			out CoinExchangeLog_CheckResult celcr,
+			out List<Lottery.LotteryBuy> lllb
 		) {
 			bool first;
 			{ 
@@ -44,6 +56,10 @@ namespace VPet.Plugin.LuckyGame.Core {
 				birthday ??= TimeData.ToString();
 				thisSaveTag = $"{MW.PrefixSave}:{birthday}";
 			}
+			bool? dbHashCheck = null;
+			if (!first) 
+				dbHashCheck = DatabaseHash_Check(MW.GameSavesData[mainKey][(LinePutScript.gstr)"hash"]);
+
 			gtcArg = new() { 
 				coins =new ulong[GameTokenCoin.Coin.CoinKey.Length],
 			};
@@ -68,10 +84,15 @@ namespace VPet.Plugin.LuckyGame.Core {
 
 			rr = new() {
 				IsFirst = first,
+				DbHashPass = dbHashCheck,
 			};
+
+			lllb = LotteryHave_Get();
 		}
 
-        const string databaseBackupConnectStr = "Data Source=lgbk.db;Version=3;";
+		const string databaseBackupFileName = "lgbk.db";
+
+		const string databaseBackupConnectStr = $"Data Source={databaseBackupFileName};Version=3;";
 
         public static void EnsureDatabaseBackup() {
 			try
@@ -90,6 +111,12 @@ namespace VPet.Plugin.LuckyGame.Core {
 								MoneyChange TEXT,
 								Note TEXT
 							);
+							CREATE TABLE IF NOT EXISTS LotteryHave (
+								Id INTEGER PRIMARY KEY AUTOINCREMENT,
+								LotteryNumber TEXT NOT NULL,
+								Coin TEXT NOT NULL,
+								CoinType INTEGER NOT NULL
+							);
 						"
 					, sql))
 					{
@@ -102,6 +129,22 @@ namespace VPet.Plugin.LuckyGame.Core {
 				MessageBoxX.Show("数据库备份初始化失败！\n{0}".Translate(ex.Message), "错误".Translate());
 			}
         }
+		/// <summary>
+		/// 获取数据库的哈希值
+		/// </summary>
+		/// <returns></returns>
+		private static string GetDatabaseBackupHash() {
+			using (SHA256 sha256 = SHA256.Create()) {
+				using (FileStream stream = File.OpenRead(databaseBackupFileName)) {
+					byte[] hash = sha256.ComputeHash(stream);
+					return BitConverter.ToString(hash).Replace("-", "");
+				}
+			}
+		}
+		private static void DatabaseHash_Save(IMainWindow MW) => 
+			MW.GameSavesData[mainKey][(LinePutScript.gstr)"hash"] = GetDatabaseBackupHash();
+		private static bool DatabaseHash_Check(string input) =>
+			input == GetDatabaseBackupHash();
 
 		/// <summary>
 		/// 统一时间数据获取
@@ -133,7 +176,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// <summary>
 		/// 获取birthday信息
 		/// </summary>
-		internal static string ThisSaveTag_DB => ThisSaveTag.Split(':')[^1];
+		internal static string ThisSaveTag_BD => ThisSaveTag.Split(':')[^1];
 		internal class CoinExchangeLog {
 			/// <summary>
 			/// 为true调用函数时不会写入数据库
@@ -228,7 +271,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 							throw new Exception("keyToType参数异常");
 						}
 						while (reader.Read()) {
-							if (reader["Note"].ToString().Substring(0, 4) is not "数据异常" and "数据丢失") {//避免重复读取修复日志
+							if (reader["Note"].ToString().Substring(0, 4) is not "数据异常" and not "数据丢失" and not "数据篡改") {//避免重复读取修复日志
 								if (!celcr.haveDiff) celcr.haveDiff = true;
 								long cc = Convert.ToInt64(reader["CoinChange"]);
 								double? mc = mc = double.TryParse(reader["MoneyChange"].ToString(), out double mc_res) ? mc_res : null;
@@ -252,6 +295,77 @@ namespace VPet.Plugin.LuckyGame.Core {
 				}
 			}
 			return celcr;
+		}
+
+		private static void LotteryHave_Save(Lottery.LotteryBuy[] lBuy) {
+			using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
+				sql.Open();
+				using (SQLiteCommand command = new(
+					@$"
+						TRUNCATE TABLE LotteryHave;
+						"
+				, sql)) {
+					command.ExecuteNonQuery();
+				}
+
+				foreach (Lottery.LotteryBuy lb in lBuy) {
+					string lotNum = "";
+					foreach(byte n in lb.lotteryNumber.MainNumber) {
+						lotNum += $"{n},";
+					}
+					lotNum = lotNum[^1..];//去掉末尾间隔符
+					lotNum += ';';
+					foreach(byte n in lb.lotteryNumber.DeputyNumber) {
+						lotNum += $"{n},";
+					}
+					lotNum = lotNum[^1..];
+					using (SQLiteCommand command = new(
+						@$"
+						INSERT INTO LotteryHave (LotteryNumber, Coin, CoinType) 
+								VALUES ('{lotNum}', '{lb.coin}', '{lb.coinType}');
+						"
+					, sql)) {
+						command.ExecuteNonQuery();
+					}
+				}
+			}
+		}
+		private static List<Lottery.LotteryBuy> LotteryHave_Get() {
+			List<Lottery.LotteryBuy> buys = [];
+			using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
+				sql.Open();
+
+				using (SQLiteCommand command = new(
+					@$"
+					SELECT * FROM LotteryHave;
+					"
+				, sql)) {
+					using (SQLiteDataReader reader = command.ExecuteReader()) {
+						while (reader.Read()) {
+							Lottery.LotteryBuy buy=new();
+							{
+								List<byte> mainNum = [];
+								List<byte> depuNum = [];
+								string ln = reader["LotteryNumber"].ToString();
+								foreach(string n in ln.Split(';')[0].Split(',')) {
+									mainNum.Add(Convert.ToByte(n));
+								}
+								foreach (string n in ln.Split(';')[1].Split(',')) {
+									depuNum.Add(Convert.ToByte(n));
+								}
+								buy.lotteryNumber = new() {
+									MainNumber= [.. mainNum],
+									DeputyNumber= [.. depuNum]
+								};
+							}
+							buy.coin = Convert.ToUInt64(reader["Coin"]);
+							buy.coinType = (GameTokenCoin.Coin.CoinType)Convert.ToInt32(reader["CoinType"]);
+							buys.Add(buy);
+						}
+					}
+				}
+			}
+			return buys;
 		}
 	}
 }
