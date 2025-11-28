@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         xmlns:pu="clr-namespace:Panuon.WPF.UI;assembly=Panuon.WPF.UI"
-        MinHeight="500" MinWidth="700" MaxHeight="600" MaxWidth="800" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight"
+        MinHeight="500" MinWidth="700" MaxHeight="800" MaxWidth="800" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight"
         Background="Transparent" AllowsTransparency="True" WindowStyle="None">
     <Window.Resources>
         <ResourceDictionary Source="/VPet-Simulator.Windows.Interface;component/ResourceStyle.xaml" />
@@ -54,14 +54,14 @@
 
                     <!-- 号码选择区域 -->
                     <Grid Grid.Row="1">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
                         <!-- 主号码区域 -->
-                        <Border Grid.Column="0" Background="{DynamicResource DARKPrimaryTrans3}" 
+                        <Border Grid.Row="0" Background="{DynamicResource DARKPrimaryTrans3}" 
                                 CornerRadius="10" Padding="15" Margin="0,0,10,0">
                             <StackPanel>
                                 <TextBlock Text="{ll:Str 主号码（0-30）}" 
@@ -70,7 +70,7 @@
                                          HorizontalAlignment="Center" Margin="0,0,0,15"/>
 
                                 <!-- 6个主号码输入框 -->
-                                <UniformGrid Rows="2" Columns="3" HorizontalAlignment="Center">
+                                <UniformGrid Rows="1" Columns="6" HorizontalAlignment="Center">
                                     <pu:NumberInput x:Name="MainNumber1" Width="80" Height="40" 
                                               Minimum="0" Maximum="30" Value="0"
                                               Background="{DynamicResource DARKPrimaryTrans4}"
@@ -117,6 +117,11 @@
 
                                 <!-- 主号码快速操作 -->
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,15,0,0">
+                                    <Button Content="{ll:Str 主号码机器选号}" 
+                                            Click="RandomMainButton_Click" Padding="20,8" Margin="5" 
+                                            Background="{DynamicResource DARKPrimaryDarker}" 
+                                            Foreground="{DynamicResource DARKPrimaryText}" 
+                                            FontWeight="Bold" FontSize="14" MinWidth="100"/>
                                     <Button Content="{ll:Str 清空主号码}" Click="ClearMainNumbers_Click"
                                            Padding="10,5" Margin="5"
                                            Background="{DynamicResource WarningBrush}"
@@ -126,12 +131,14 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- 分隔线 -->
-                        <Rectangle Grid.Column="1" Width="2" VerticalAlignment="Stretch" 
-                                  Fill="{DynamicResource DARKPrimaryLighter}" Margin="10,0"/>
-
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                        
                         <!-- 副号码区域 -->
-                        <Border Grid.Column="2" Background="{DynamicResource DARKPrimaryTrans3}" 
+                        <Border Grid.Column="0" Background="{DynamicResource DARKPrimaryTrans3}" 
                                 CornerRadius="10" Padding="15" Margin="10,0,0,0">
                             <StackPanel>
                                 <TextBlock Text="{ll:Str 副号码（0-9）}" 
@@ -159,88 +166,118 @@
 
                                 <!-- 副号码快速操作 -->
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,15,0,0">
-                                    <Button Content="{ll:Str 清空副号码}" Click="ClearSpecialNumbers_Click"
+                                        <Button Content="{ll:Str 副号码机器选号}" 
+                                                Click="RandomSpecialButton_Click" Padding="20,8" Margin="5" 
+                                                Background="{DynamicResource DARKPrimaryDarker}" 
+                                                Foreground="{DynamicResource DARKPrimaryText}" 
+                                                FontWeight="Bold" FontSize="14" MinWidth="100"/>
+                                        <Button Content="{ll:Str 清空副号码}" Click="ClearSpecialNumbers_Click"
                                            Padding="10,5" Margin="5"
                                            Background="{DynamicResource WarningBrush}"
                                            Foreground="{DynamicResource DARKPrimaryText}"
                                            FontSize="12" MinWidth="80"/>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
-                                    <TextBlock Text="{ll:Str 投注数量(1代币/注)：}" 
-                                         FontSize="16" FontWeight="Bold"
-                                         Foreground="{DynamicResource DARKPrimaryText}" VerticalAlignment="Center"/>
-                                    <pu:NumberInput x:Name="CoinNum" Width="80" Height="40" 
-                                          Minimum="1" Value="1"
-                                          Background="{DynamicResource DARKPrimaryTrans4}"
-                                          Foreground="{DynamicResource DARKPrimaryText}"
-                                          BorderBrush="{DynamicResource DARKPrimaryLighter}"
-                                          BorderThickness="2" FontSize="16" FontWeight="Bold"
-                                          Margin="5"/>
-                                </StackPanel>
                             </StackPanel>
                         </Border>
+
+                        <!--购买选择区-->
+                        <Border Grid.Column="1" Background="{DynamicResource DARKPrimaryTrans3}" 
+                                CornerRadius="10" Padding="15" Margin="10,0,0,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
+                                    <TextBlock Text="{ll:Str 押币数（最少2代币）：}" 
+                                            FontSize="16" FontWeight="Bold"
+                                            Foreground="{DynamicResource DARKPrimaryText}" VerticalAlignment="Center"/>
+                                    <pu:NumberInput x:Name="CoinNum" Width="80" Height="40" 
+                                        Minimum="2" Value="2"
+                                        Background="{DynamicResource DARKPrimaryTrans4}"
+                                        Foreground="{DynamicResource DARKPrimaryText}"
+                                        BorderBrush="{DynamicResource DARKPrimaryLighter}"
+                                        BorderThickness="2" FontSize="16" FontWeight="Bold"
+                                        Margin="5"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Button x:Name="RandomButton" Content="{ll:Str 机器选号}" 
+                                                Click="RandomButton_Click" Padding="20,8" Margin="5" 
+                                                Background="{DynamicResource DARKPrimaryDarker}" 
+                                                Foreground="{DynamicResource DARKPrimaryText}" 
+                                                FontWeight="Bold" FontSize="14" MinWidth="100"/>
+                                        <Button Content="{ll:Str 清空所有}" Click="ClearAllNumbers_Click"
+                                                Padding="10,5" Margin="5"
+                                                Background="{DynamicResource WarningBrush}"
+                                                Foreground="{DynamicResource DARKPrimaryText}"
+                                                FontSize="12" MinWidth="80"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Button Content="{ll:Str 购买彩票}" 
+                                                Click="BuyButton_Click" Padding="20,8" Margin="5" 
+                                                Background="{DynamicResource SuccessBrush}" 
+                                                Foreground="{DynamicResource DARKPrimaryText}" 
+                                                FontWeight="Bold" FontSize="14" MinWidth="100"/>
+                                        <CheckBox x:Name="AutoClearByBuy" 
+                                                  Content="{ll:Str 购买后自动清空号码}"/>
+                                    </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        </Grid>
                     </Grid>
 
-                    <!-- 结果显示区域 -->
-                    <Border Grid.Row="2" Background="{DynamicResource DARKPrimaryTrans2}" 
-                            CornerRadius="8" Padding="15" Margin="0,20,0,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-
-                            <!-- 开奖结果 -->
-                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="{ll:Str 开奖结果：}" 
-                                         FontSize="14" FontWeight="Bold"
-                                         Foreground="{DynamicResource DARKPrimaryText}"
-                                         VerticalAlignment="Center" Margin="0,0,10,0"/>
-
-                                <!-- 中奖号码显示 -->
-                                <ItemsControl x:Name="ResultNumbersPanel">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <StackPanel Orientation="Horizontal"/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Width="30" Height="30" CornerRadius="15" 
-                                                   Background="{Binding BackgroundColor}"
-                                                   BorderBrush="{DynamicResource DARKPrimaryLighter}"
-                                                   BorderThickness="1" Margin="2">
-                                                <TextBlock Text="{Binding Number}" 
-                                                          Foreground="{DynamicResource DARKPrimaryText}"
-                                                          FontSize="14" FontWeight="Bold"
-                                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-
-                            <!-- 中奖信息 -->
-                            <TextBlock x:Name="ResultText" Grid.Column="1" 
-                                     FontSize="16" FontWeight="Bold"
-                                     Foreground="{DynamicResource SuccessBrush}"
-                                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                                     Text="{ll:Str 等待开奖...}"/>
-                        </Grid>
-                    </Border>
+                    
                 </Grid>
             </Border>
 
+            <!-- 结果显示区域 -->
+            <Border Grid.Row="2" Background="{DynamicResource DARKPrimaryTrans2}" 
+        CornerRadius="8" Padding="15" Margin="0,20,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 开奖结果 -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="{ll:Str 开奖结果：}" 
+                     FontSize="14" FontWeight="Bold"
+                     Foreground="{DynamicResource DARKPrimaryText}"
+                     VerticalAlignment="Center" Margin="0,0,10,0"/>
+
+                        <!-- 中奖号码显示 -->
+                        <ItemsControl x:Name="ResultNumbersPanel">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Width="30" Height="30" CornerRadius="15" 
+                               Background="{Binding BackgroundColor}"
+                               BorderBrush="{DynamicResource DARKPrimaryLighter}"
+                               BorderThickness="1" Margin="2">
+                                        <TextBlock Text="{Binding Number}" 
+                                      Foreground="{DynamicResource DARKPrimaryText}"
+                                      FontSize="14" FontWeight="Bold"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- 中奖信息 -->
+                    <TextBlock x:Name="ResultText" Grid.Column="1" 
+                 FontSize="16" FontWeight="Bold"
+                 Foreground="{DynamicResource SuccessBrush}"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Text="{ll:Str 等待开奖...}"/>
+                </Grid>
+            </Border>
             <!-- 控制按钮区域 -->
             <Border Grid.Row="2" Background="{DynamicResource DARKPrimaryTrans2}" 
                     CornerRadius="0,0,5,5" Padding="10">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button x:Name="RandomButton" Content="{ll:Str 随机生成号码}" 
-                           Click="RandomButton_Click" Padding="20,8" Margin="5" 
-                           Background="{DynamicResource DARKPrimaryDarker}" 
-                           Foreground="{DynamicResource DARKPrimaryText}" 
-                           FontWeight="Bold" FontSize="14" MinWidth="100"/>
 
                     <Button x:Name="DrawButton" Content="{ll:Str 开始开奖}" 
                            Click="DrawButton_Click" Padding="20,8" Margin="5" 

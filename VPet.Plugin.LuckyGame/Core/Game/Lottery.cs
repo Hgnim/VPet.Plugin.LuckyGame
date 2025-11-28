@@ -45,8 +45,16 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 				get => deputyNumber;
 			}
 
-			internal static LotteryNumber GetRandomNumber(){
-				Random ran = new();
+			/// <summary>
+			/// 获取随机彩票数类型
+			/// </summary>
+			/// <param name="seed">可选种子，留空或为null则使用默认值</param>
+			/// <returns></returns>
+			internal static LotteryNumber GetRandomNumber(int? seed=null){
+				Random ran = 
+					seed == null 
+					? new() 
+					: new((int)seed);
 				byte[] mn = new byte[6];
 				byte[] dn = new byte[2];
 				void action(ref byte[] num,int min,int max) {
@@ -57,7 +65,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 							pass = true;
 							ranNum = (byte)ran.Next(min, max);
 							for (byte b2 = 0; b2 < b; b2++) {
-								if (num[b2] == ranNum) {
+								if (num[b2] == ranNum) {//生成的号码不重复
 									pass = false;
 									break;
 								}
@@ -96,195 +104,200 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 			/// 使用的代币类型，如果为null则使用默认代币类型
 			/// </summary>
 			internal GameTokenCoin.Coin.CoinType? coinType=null;
+
+			private bool bought = false;
+			/// <summary>
+			/// 表示当前彩票是否是已购买状态
+			/// </summary>
+			internal bool Bought => bought;
+
+			/// <summary>
+			/// 购买彩票
+			/// </summary>
+			/// <param name="gtc">游戏代币数据</param>
+			/// <returns>返回值与gtc.ChangeCoin函数一致</returns>
+			internal byte Pay(GameTokenCoin gtc) {
+				coinType ??= gtc.defCoinType;
+				byte res = gtc.ChangeCoin(coin, false, coinType, cel: new() {
+					Note = "彩票购买",
+					OnlyNote = true
+				});
+				bought = res == 0;
+				return res;
+			}
 		}
 		/// <summary>
 		/// 彩票结果类
 		/// </summary>
 		internal class LotteryResult {
-			LotteryBuy buyInfo;
 			/// <summary>
 			/// 购买信息
 			/// </summary>
-			internal LotteryBuy BuyInfo => buyInfo;
+			internal required LotteryBuy BuyInfo { get; set; }
 
-			LotteryNumber winningNumber;
 			/// <summary>
 			/// 开奖号码
 			/// </summary>
-			internal LotteryNumber WinningNumber => winningNumber;
+			internal required LotteryNumber WinningNumber { get; set; }
 
-			byte mainWinCount;
 			/// <summary>
 			/// 主号码中奖个数
 			/// </summary>
-			internal byte MainWinCount => mainWinCount;
+			internal required byte MainWinCount { get; set; }
 
-			byte deputyWinCount;
 			/// <summary>
 			/// 副号码中奖个数
 			/// </summary>
-			internal byte DeputyWinCount => deputyWinCount;
+			internal required byte DeputyWinCount { get; set; }
 
-			bool[] mainWinLoc;
 			/// <summary>
 			/// 主号码中奖号码位置<br/>
 			/// 为true则表示该位置号码中奖
 			/// </summary>
-			internal bool[] MainWinLoc => mainWinLoc;
+			internal required bool[] MainWinLoc { get; set; }
 
-			bool[] deputyWinLoc;
 			/// <summary>
 			/// 副号码中奖号码位置<br/>
 			/// 为true则表示该位置号码中奖
 			/// </summary>
-			internal bool[] DeputyWinLoc => deputyWinLoc;
+			internal required bool[] DeputyWinLoc { get; set; }
 
-			ulong winCoin;
 			/// <summary>
 			/// 赢得的代币数量
 			/// </summary>
-			internal ulong WinCoin => winCoin;
+			internal ulong WinCoin => WinCoin_Detail[^1];
 
-			internal LotteryResult(
-				LotteryBuy buyInf, 
-				LotteryNumber winningNum, 
-				byte mainWinCou, 
-				byte deputyWinCou,
-				bool[] mainWinLo,
-				bool[] deputyWinLo,
-				ulong winCoi
-			) {
-				buyInfo = buyInf;
-				winningNumber = winningNum;
-				mainWinCount = mainWinCou;
-				deputyWinCount = deputyWinCou;
-				mainWinLoc = mainWinLo;
-				deputyWinLoc = deputyWinLo;
-				winCoin = winCoi;
-			}
+			/// <summary>
+			/// 赢得代币的细节，长度为主号码长度加副号码长度<br/>
+			/// 用于兼容开奖动画，每一个索引代表者开出一个号码后赢得代币数量的变化
+			/// </summary>
+			internal required ulong[] WinCoin_Detail { get; set; }
+
+			/// <summary>
+			/// 将当前实例中赢得的代币数据给予玩家
+			/// </summary>
+			/// <param name="gtc">游戏代币数据</param>
+			/// <returns>返回值与gtc.ChangeCoin函数一致</returns>
+			internal byte WinCoinPay(GameTokenCoin gtc) => 
+				gtc.ChangeCoin(WinCoin, true, BuyInfo.coinType, cel: new() {
+					Note = "彩票获奖",
+					OnlyNote = true
+				});
 		}
 
 		/// <summary>
 		/// 彩票开始
 		/// </summary>
-		/// <param name="buy">购买信息</param>
-		/// <param name="gtc">
-		/// 游戏代币数据<br/>
-		/// 提供此参数将根据buy参数自动扣取代币和结束时赢得代币，如果留空或为null则需要手动操作
-		/// </param>
-		/// <returns>返回结果信息</returns>
-		internal static LotteryResult Start(LotteryBuy buy, GameTokenCoin gtc=null) {
-			buy.coinType ??= gtc.defCoinType;
-			gtc?.ChangeCoin(buy.coin, false, buy.coinType, cel: new() {
-					Note = "彩票购买",
-					OnlyNote = true
-				});
-			Random ran;
+		/// <param name="buy">购买信息组</param>
+		/// <returns>返回结果信息组</returns>
+		internal static LotteryResult[] Start(LotteryBuy[] buy) {
+			byte[] winMainNum, winDepuNum;
 			{
-				Random r = new();
-				long seed = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-				foreach(byte b in buy.lotteryNumber.MainNumber) {
-					if (Convert.ToBoolean(r.Next(2)))
-						seed += b * buy.lotteryNumber.DeputyNumber[0];
-					else
-						seed += b * buy.lotteryNumber.DeputyNumber[1];
+				long seed = DataSave.TimeData;
+				Random ran = new();
+				void action(byte num) {
+					if (Convert.ToBoolean(ran.Next(0, 2))) {
+						if (long.MaxValue - num > seed) seed += num;
+					}
+					else {
+						if (long.MinValue + num < seed) seed -= num;
+					}
 				}
-				ran = new(seed.GetHashCode());
+				foreach (LotteryBuy bu in buy) {
+					foreach(byte num in bu.lotteryNumber.MainNumber) {
+						action(num);
+					}
+					foreach(byte num in bu.lotteryNumber.DeputyNumber) {
+						action(num);
+					}
+				}
+				TakeWinNumber(out winMainNum, out winDepuNum, 123);
 			}
-
-			byte[] winMainNum = new byte[6];
-			byte[] winDepuNum = new byte[2];
-			{
-				byte[] spawnRanNum(byte length, int minVal, int maxVal) {
-					byte[] ret = new byte[length];
-					for (byte b = 0; b < length; b++) {
-						bool pass = true;
-						byte num;
-						do {
-							num = (byte)ran.Next(minVal, maxVal);
-							for (byte j = 0; j < b; j++) {//生成的号码不重复
-								if (num == winMainNum[j]) {
-									pass = false;
-									break;
-								}
-								else
-									pass = true;
+			LotteryResult[] lr=new LotteryResult[buy.Length];
+			for (uint i = 0; i < buy.Length; i++) {
+				byte mainWinCount, deputyWinCount;
+				bool[] mainWinLoc, deputyWinLoc;
+				{
+					void checkWin(
+						out byte winCount,
+						out bool[] winLoc,
+						byte legth,
+						byte[] winNum,
+						byte[] buyNum
+					) {
+						winCount = 0;
+						winLoc = new bool[legth];
+						for (byte b = 0; b < legth; b++) {
+							if (buyNum[b] == winNum[b]) {
+								winCount++;
+								winLoc[b] = true;
 							}
-						} while (!pass);
-						ret[b] = num;
-					}
-					return ret;
-				}
-				winMainNum = spawnRanNum(6, 0, 30 + 1);
-				winDepuNum = spawnRanNum(2, 0, 10);
-			}
-			byte mainWinCount, deputyWinCount;
-			bool[] mainWinLoc, deputyWinLoc;
-			{
-				void checkWin(
-					out byte winCount, 
-					out bool[] winLoc, 
-					byte legth,
-					byte[] winNum,
-					byte[] buyNum
-				) {
-					winCount = 0;
-					winLoc = new bool[legth];
-					for (byte b=0; b < legth; b++) {
-						if (buyNum[b] == winNum[b]) {
-							winCount++;
-							winLoc[b] = true;
+							else
+								winLoc[b] = false;
 						}
-						else
-							winLoc[b] = false;
 					}
+					checkWin(
+						out mainWinCount,
+						out mainWinLoc,
+						6,
+						winMainNum,
+						buy[i].lotteryNumber.MainNumber
+					);
+					checkWin(
+						out deputyWinCount,
+						out deputyWinLoc,
+						2,
+						winDepuNum,
+						buy[i].lotteryNumber.DeputyNumber
+					);
 				}
-				checkWin(
-					out mainWinCount,
-					out mainWinLoc,
-					6,
-					winMainNum,
-					buy.lotteryNumber.MainNumber
-				);
-				checkWin(
-					out deputyWinCount,
-					out deputyWinLoc,
-					2,
-					winDepuNum,
-					buy.lotteryNumber.DeputyNumber
-				);
-			}
 
-			ulong winCo;{
-				double wc = buy.coin;
-				if (mainWinCount != 0) {
-					wc = Math.Pow(mainWinCount, wc);
-				}
-				if (deputyWinCount != 0) {
-					if (mainWinCount != 0 || deputyWinCount == 2) {
-						wc *= Math.Pow(1.5, deputyWinCount);
+
+				ulong[] winCoDet = new ulong[8];
+				{
+					double[] winCoDet_doub = new double[8];
+					for (byte b = 0; b < 8; b++) {
+						byte winN = 0;
+						if (b < 6) {
+							for (byte b2 = 0; b2 < b+1; b2++) {
+								if (b2 < 6) 
+									if (mainWinLoc[b2]) winN++;
+							}
+							winCoDet_doub[b] = Math.Pow(winN, buy[i].coin);
+						}
+						else {
+							for(byte b2 = 0; b2 < b-6+1; b2++) {
+								if (b2 < 2)
+									if (deputyWinLoc[b2]) winN++;
+							}
+							winCoDet_doub[b] = winCoDet_doub[6-1] + Math.Pow(1.5, winN);
+							if (b == 8 - 1 && winN == 0) winCoDet_doub[b] = 0;//如果副号码没有赢，则主号码赢得的不算数
+						}
+					}
+					for(byte b = 0; b < 8; b++) {
+						winCoDet[b] = (ulong)Math.Round(winCoDet_doub[b]);
 					}
 				}
-				if (mainWinCount == 0 && deputyWinCount == 0)
-					wc = 0;
-				winCo= (ulong)Math.Round(wc);
+				lr[i] = new() {
+					BuyInfo = buy[i],
+					WinningNumber = new() {
+						MainNumber = winMainNum,
+						DeputyNumber = winDepuNum
+					},
+					MainWinCount = mainWinCount,
+					DeputyWinCount = deputyWinCount,
+					MainWinLoc = mainWinLoc,
+					DeputyWinLoc = deputyWinLoc,
+					WinCoin_Detail = winCoDet
+				};
 			}
-			gtc?.ChangeCoin(winCo, true, buy.coinType, cel: new() {
-					Note = "彩票获奖",
-					OnlyNote = true
-				});
-			return new(
-				buy,
-				new() {
-					MainNumber = winMainNum,
-					DeputyNumber = winDepuNum
-				},
-				mainWinCount,
-				deputyWinCount,
-				mainWinLoc,
-				deputyWinLoc,
-				winCo
-			);
+			return lr;
+		}
+
+		private static void TakeWinNumber(out byte[] winMainNum,out byte[] winDepuNum,long seed) {
+			LotteryNumber ln = LotteryNumber.GetRandomNumber(seed.GetHashCode());
+			winMainNum = ln.MainNumber;
+			winDepuNum = ln.DeputyNumber;
 		}
 	}
 }

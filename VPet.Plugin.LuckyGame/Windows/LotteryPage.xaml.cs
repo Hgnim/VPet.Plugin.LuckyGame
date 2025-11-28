@@ -28,8 +28,22 @@ namespace VPet.Plugin.LuckyGame.Windows
             
         }
 
-        // 随机生成号码
-        private void RandomButton_Click(object sender, RoutedEventArgs e)
+		// 随机生成号码
+		private void RandomMainButton_Click(object sender, RoutedEventArgs e) {
+			Lottery.LotteryNumber numbers = Lottery.LotteryNumber.GetRandomNumber();
+			MainNumber1.Value = numbers.MainNumber[0];
+			MainNumber2.Value = numbers.MainNumber[1];
+			MainNumber3.Value = numbers.MainNumber[2];
+			MainNumber4.Value = numbers.MainNumber[3];
+			MainNumber5.Value = numbers.MainNumber[4];
+			MainNumber6.Value = numbers.MainNumber[5];
+		}
+		private void RandomSpecialButton_Click(object sender, RoutedEventArgs e) {
+			Lottery.LotteryNumber numbers = Lottery.LotteryNumber.GetRandomNumber();
+			SpecialNumber1.Value = numbers.DeputyNumber[0];
+			SpecialNumber2.Value = numbers.DeputyNumber[1];
+		}
+		private void RandomButton_Click(object sender, RoutedEventArgs e)
         {
             Lottery.LotteryNumber numbers = Lottery.LotteryNumber.GetRandomNumber();
             MainNumber1.Value = numbers.MainNumber[0];
@@ -55,16 +69,26 @@ namespace VPet.Plugin.LuckyGame.Windows
             MainNumber5.Value = 0;
             MainNumber6.Value = 0;
         }
-
         // 清空副号码
         private void ClearSpecialNumbers_Click(object sender, RoutedEventArgs e)
         {
             SpecialNumber1.Value = 0;
             SpecialNumber2.Value = 0;
         }
+		private void ClearAllNumbers_Click(object sender, RoutedEventArgs e) {
+            ClearMainNumbers_Click(null,null);
+            ClearSpecialNumbers_Click(null, null);
+		}
 
-        // 开始开奖
-        private void DrawButton_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// 购买彩票按钮按下
+        /// </summary>
+		private void BuyButton_Click(object sender, RoutedEventArgs e) {
+
+		}
+
+		// 开始开奖
+		private void DrawButton_Click(object sender, RoutedEventArgs e)
         {
             // 开奖逻辑
             Lottery.LotteryNumber userNumbers = new Lottery.LotteryNumber
@@ -136,5 +160,5 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             Close();
         }
-    }
+	}
 }
