@@ -155,7 +155,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 			/// 主号码中奖号码位置<br/>
 			/// 为true则表示该位置号码中奖
 			/// </summary>
-			internal required bool[] MainWinLoc { get; set; }
+			internal required bool[] MainWinLoc { get; set; } 
 
 			/// <summary>
 			/// 副号码中奖号码位置<br/>

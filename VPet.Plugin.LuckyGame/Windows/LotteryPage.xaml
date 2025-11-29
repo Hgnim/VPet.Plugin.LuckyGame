@@ -17,6 +17,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- 标题 -->
@@ -228,7 +229,7 @@
 
             <!-- 结果显示区域 -->
             <Border Grid.Row="2" Background="{DynamicResource DARKPrimaryTrans2}" 
-        CornerRadius="8" Padding="15" Margin="0,20,0,0">
+                CornerRadius="8" Padding="5" Margin="0,0,0,10">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -236,14 +237,14 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- 开奖结果 -->
+                    <!-- 开奖结果 --><!--
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="{ll:Str 开奖结果：}" 
                      FontSize="14" FontWeight="Bold"
                      Foreground="{DynamicResource DARKPrimaryText}"
-                     VerticalAlignment="Center" Margin="0,0,10,0"/>
+                     VerticalAlignment="Center" Margin="0,0,0,0"/>
 
-                        <!-- 中奖号码显示 -->
+                        --><!-- 中奖号码显示 --><!--
                         <ItemsControl x:Name="ResultNumbersPanel">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -264,18 +265,18 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </StackPanel>
+                    </StackPanel>-->
 
                     <!-- 中奖信息 -->
                     <TextBlock x:Name="ResultText" Grid.Column="1" 
-                 FontSize="16" FontWeight="Bold"
-                 Foreground="{DynamicResource SuccessBrush}"
-                 HorizontalAlignment="Center" VerticalAlignment="Center"
-                 Text="{ll:Str 等待开奖...}"/>
+                         FontSize="16" FontWeight="Bold"
+                         Foreground="{DynamicResource SuccessBrush}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center"
+                         Text="{ll:Str 等待开奖...}"/>
                 </Grid>
             </Border>
-            <!-- 控制按钮区域 -->
-            <Border Grid.Row="2" Background="{DynamicResource DARKPrimaryTrans2}" 
+            <!-- 控制按钮区域 --><!--
+            <Border Grid.Row="3" Background="{DynamicResource DARKPrimaryTrans2}" 
                     CornerRadius="0,0,5,5" Padding="10">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 
@@ -285,7 +286,7 @@
                            Foreground="{DynamicResource DARKPrimaryText}" 
                            FontWeight="Bold" FontSize="14" MinWidth="100"/>
                 </StackPanel>
-            </Border>
+            </Border>-->
         </Grid>
     </Border>
 </Window>

@@ -5,6 +5,7 @@ using Panuon.WPF.UI;
 using System;
 using System.Collections.Generic;
 using System.Runtime.ConstrainedExecution;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 ﻿using VPet.Plugin.LuckyGame.Core;
@@ -21,6 +22,7 @@ namespace VPet.Plugin.LuckyGame
         public ArcadeExchange arcadeExchangeWindow;
         public LotteryPage lotteryWindow;
         internal Data data;
+        private CancellationTokenSource _cts;
         public LuckyGame(IMainWindow mainwin) : base(mainwin) {
 		}
 		public override string PluginName => "LuckyGame";
@@ -161,12 +163,12 @@ namespace VPet.Plugin.LuckyGame
             {
                 lotteryWindow.Close();
                 lotteryWindow = null;
-                lotteryWindow = new LotteryPage(data.gtc);
+                lotteryWindow = new LotteryPage(data);
                 lotteryWindow.Show();
             }
             else
             {
-                lotteryWindow = new LotteryPage(data.gtc);
+                lotteryWindow = new LotteryPage(data);
                 lotteryWindow.Show();
             }
         }
