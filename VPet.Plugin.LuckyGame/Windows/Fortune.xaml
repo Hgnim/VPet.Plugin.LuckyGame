@@ -30,7 +30,7 @@
                     BorderBrush="{DynamicResource DARKPrimaryLighter}" BorderThickness="0,0,0,2"
                     Margin="5,5,5,0" CornerRadius="5" Grid.Column="0" Grid.ColumnSpan="3">
                 <Grid HorizontalAlignment="Stretch"  VerticalAlignment="Stretch">
-                    <TextBlock Text="{ll:Str 幸运大转盘}" 
+                    <TextBlock Text="{ll:Str Lucky Wheel}" 
                           HorizontalAlignment="Center" VerticalAlignment="Center"
                           FontSize="28" FontWeight="Bold" 
                           Foreground="{DynamicResource DARKPrimaryText}"/>
@@ -53,7 +53,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- 设置标题 -->
-                    <TextBlock Grid.Row="0" Text="{ll:Str 转盘设置}" 
+                    <TextBlock Grid.Row="0" Text="{ll:Str 转盘选项}" 
                               FontSize="20" FontWeight="Bold"
                               Foreground="{DynamicResource DARKPrimaryText}"
                               HorizontalAlignment="Center" Margin="0,0,0,10"/>
@@ -103,9 +103,9 @@
                                          BorderBrush="{DynamicResource DARKPrimaryLighter}"
                                          SelectionChanged="SectorCountComboBox_SelectionChanged">
                                     <ComboBoxItem Content="2格" Tag="2"/>
-                                    <ComboBoxItem Content="4格" Tag="4"/>
+                                    <ComboBoxItem Content="4格" Tag="4" IsSelected="True"/>
                                     <ComboBoxItem Content="5格" Tag="5"/>
-                                    <ComboBoxItem Content="6格" Tag="6" IsSelected="True"/>
+                                    <ComboBoxItem Content="6格" Tag="6"/>
                                     <ComboBoxItem Content="8格" Tag="8"/>
                                     <ComboBoxItem Content="10格" Tag="10"/>
                                 </ComboBox>
@@ -189,6 +189,9 @@
                                     Stroke="{DynamicResource DARKPrimaryText}" StrokeThickness="1"/>
                         </Canvas>
                     </Viewbox>
+                    <TextBlock x:Name="CoinResult"
+                            Foreground="{DynamicResource DARKPrimaryText}" HorizontalAlignment="Center"
+                            FontSize="16" VerticalAlignment="Bottom" Height="auto" Margin="0,0,0,0"/>
                 </Grid>
             </Border>
 
@@ -199,6 +202,10 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="CoinBalanceText" Text="🎮 ? 枚" 
+                    Foreground="#FFFF00FF" FontSize="18" FontWeight="Bold"
+                    HorizontalAlignment="Left" VerticalAlignment="Center"/>
 
                 <!-- 控制按钮 -->
                 <StackPanel x:Name="ControlPanel" Grid.Column="1" Orientation="Horizontal" 

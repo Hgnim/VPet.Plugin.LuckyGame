@@ -59,6 +59,8 @@ namespace VPet.Plugin.LuckyGame.Core {
 			bool? dbHashCheck = null;
 			if (!first) 
 				dbHashCheck = DatabaseHash_Check(MW.GameSavesData[mainKey][(LinePutScript.gstr)"hash"]);
+			else
+				EnsureDatabaseBackup();
 
 			gtcArg = new() { 
 				coins =new ulong[GameTokenCoin.Coin.CoinKey.Length],
@@ -94,7 +96,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 
 		const string databaseBackupConnectStr = $"Data Source={databaseBackupFileName};Version=3;";
 
-        public static void EnsureDatabaseBackup() {
+        private static void EnsureDatabaseBackup() {
 			try
 			{
 				using (SQLiteConnection sql = new(databaseBackupConnectStr))
@@ -126,7 +128,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			}
 			catch (SQLiteException ex)
 			{
-				MessageBoxX.Show("数据库备份初始化失败！\n{0}".Translate(ex.Message), "错误".Translate());
+				MessageBoxX.Show("数据初始化失败！\n{0}".Translate(ex.Message), "错误".Translate());
 			}
         }
 		/// <summary>
@@ -271,7 +273,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 							throw new Exception("keyToType参数异常");
 						}
 						while (reader.Read()) {
-							if (reader["Note"].ToString().Substring(0, 4) is not "数据异常" and not "数据丢失" and not "数据篡改") {//避免重复读取修复日志
+							if (reader["Note"].ToString() is not "数据异常，代币回滚" and not "数据异常，金钱回滚") {//避免重复读取修复日志
 								if (!celcr.haveDiff) celcr.haveDiff = true;
 								long cc = Convert.ToInt64(reader["CoinChange"]);
 								double? mc = mc = double.TryParse(reader["MoneyChange"].ToString(), out double mc_res) ? mc_res : null;
@@ -302,7 +304,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 				sql.Open();
 				using (SQLiteCommand command = new(
 					@$"
-						TRUNCATE TABLE LotteryHave;
+						DELETE FROM LotteryHave;
 						"
 				, sql)) {
 					command.ExecuteNonQuery();

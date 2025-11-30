@@ -1,0 +1,56 @@
+LuckyGame_Description#Lolis' Lucky Game:|
+LuckyGame#Lucky Game:|
+
+黑色代币#Black Token:|
+蓝色代币#Blue Token:|
+绿色代币#Green Token:|
+红色代币#Red Token:|
+白色代币#White Token:|
+错误#Error:|
+正在加载#Loading:|
+插件正在加载，请稍后再试。#Plugin is loading, please try again later.:|
+警告#Warning:|
+数据初始化失败！\n{0}#Data initialization failed!\n{0}:|
+
+Lucky Game#Lucky Game:|
+Lucky Wheel#Lucky Wheel:|
+Token Exchangge#Token Exchange:|
+Lottery#Lottery:|
+
+转盘选项#Wheel Options:|
+每次使用代币数量：#Tokens per spin:|
+转盘格数：#Wheel segments:|
+预测点数：#Predicted points:|
+开始旋转#Spin:|
+重置#Reset:|
+转盘未初始化，请点击重置后继续#Wheel not initialized, please click Reset to continue:|
+旋转中...#Spinning...:|
+出现未知错误，无法进行抽奖#Unknown error occurred, cannot draw:|
+押注代币为0，无法进行抽奖#Bet tokens are 0, cannot draw:|
+代币余额不足，无法进行抽奖#Insufficient token balance, cannot draw:|
+转盘旋转出错：{0}#Wheel spin error: {0}:|
+赢得 {0} 代币！#Won {0} tokens!:|
+输掉了！#Lost!:|
+
+代币兑换系统#Token Exchange System:|
+🎯 代币兑换#🎯 Token Exchange:|
+兑换数量#Exchange Quantity:|
+花费 ? 金钱#Cost ? Gold:|
+兑换#Exchange:|
+$ 代币回收#$ Token Recycle:|
+回收数量#Recycle Quantity:|
+获得 ? 金钱#Gain ? Gold:|
+回收#Recycle:|
+玩家信息#Player Info:|
+金钱余额#Gold Balance:|
+代币数量#Token Amount:|
+代币选择#Token Selection:|
+选择代币以显示其汇率#Select token to display its exchange rate:|
+选择代币以显示其回收手续费#Select token to display its recycle fee:|
+¥ {0}#¥ {0}:|
+🎮 {0}#🎮 {0}:|
+花费 {0} 金钱#Cost {0} Gold:|
+无效输入#Invalid Input:|
+获得 {0} 金钱#Gain {0} Gold:|
+{0} = {1} 金钱#{0} = {1} Gold:|
+回收 {0} 收取 {1}% 手续费#Recycling {0} charges {1}% fee:|

@@ -23,13 +23,16 @@ namespace VPet.Plugin.LuckyGame
         public LotteryPage lotteryWindow;
         internal Data data;
         private CancellationTokenSource _cts;
+        /// <summary>
+        /// 表示LoadPlugin函数是否执行完成以加载所有资源，避免出现引用为null的情况
+        /// </summary>
+        private bool isLoaded = false;
         public LuckyGame(IMainWindow mainwin) : base(mainwin) {
 		}
 		public override string PluginName => "LuckyGame";
         public override void LoadPlugin()
         {
             //try { 
-            DataSave.EnsureDatabaseBackup();
             DataSave.Read(
                 MW, 
                 out DataSave.ReadResult rr, 
@@ -99,19 +102,21 @@ namespace VPet.Plugin.LuckyGame
                     gtc.coin.CoinGreen = 0;
                     gtc.coin.CoinRed = 0;
                     gtc.coin.CoinWhite = 0;*/
-                    ClearCoin("数据丢失，代币清除");//注意此行不要翻译，在别处有对其文本的判断
+                    ClearCoin("数据丢失，代币清除");
 					MessageBoxX.Show("检测到幸运游戏数据丢失", "错误");//用于测试，后期将润色
 				}
                 if (rr.DbHashPass == false) {
-					ClearCoin("数据篡改，代币清除");//注意此行不要翻译，在别处有对其文本的判断
+					ClearCoin("数据篡改，代币清除");
 					MessageBoxX.Show("检测到幸运游戏数据被篡改", "错误");//用于测试，后期将润色
 				}
             }
             //}catch(Exception ex) { ErrorHelper.ShowError(ex); }
+            isLoaded = true;
         }
 
         private void TokenExchangeMenu_Click(object sender, System.Windows.RoutedEventArgs e)
         {
+            if (isLoaded) {
             if(arcadeExchangeWindow != null && arcadeExchangeWindow.IsVisible)
             {
                 arcadeExchangeWindow.Activate();
@@ -129,10 +134,14 @@ namespace VPet.Plugin.LuckyGame
                 arcadeExchangeWindow = new ArcadeExchange(MW, data.gtc);
                 arcadeExchangeWindow.Show();
             }
-        }
+            }
+            else
+				MessageBoxX.Show("插件正在加载，请稍后再试。".Translate(), "正在加载".Translate());
+		}
 
         private void Fortune_Click(object sender, System.Windows.RoutedEventArgs e)
         {
+            if (isLoaded) {
             if(fortuneWindow != null && fortuneWindow.IsVisible)
             {
                 fortuneWindow.Activate();
@@ -150,10 +159,14 @@ namespace VPet.Plugin.LuckyGame
                 fortuneWindow = new Fortune(data.gtc);
                 fortuneWindow.Show();
             }
+            }
+            else
+                MessageBoxX.Show("插件正在加载，请稍后再试。".Translate(), "正在加载".Translate());
         }
 
         private void LotteryMenu_Click(object sender, RoutedEventArgs e)
         {
+            if (isLoaded) {
             if(lotteryWindow != null && lotteryWindow.IsVisible)
             {
                 lotteryWindow.Activate();
@@ -171,7 +184,10 @@ namespace VPet.Plugin.LuckyGame
                 lotteryWindow = new LotteryPage(data);
                 lotteryWindow.Show();
             }
-        }
+            }
+            else
+                MessageBoxX.Show("插件正在加载，请稍后再试。".Translate(), "正在加载".Translate());
+		}
 
         public override void Setting()
         {
@@ -189,13 +205,13 @@ namespace VPet.Plugin.LuckyGame
                 };
                 var fortune = new MenuItem
                 {
-                    Header = "Fortune".Translate(),
+                    Header = "Lucky Wheel".Translate(),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center
                 };
                 fortune.Click += Fortune_Click;
                 var TokenExchangeMenu = new MenuItem
                 {
-                    Header = "TokenExchangge".Translate(),
+                    Header = "Token Exchangge".Translate(),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 };
                 TokenExchangeMenu.Click += TokenExchangeMenu_Click;

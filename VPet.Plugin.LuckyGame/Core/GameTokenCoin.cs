@@ -434,6 +434,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 				if (cel.OnlyNote) {
 					string note = cel.Note;
 					cel = new() {
+						SaveTag = DataSave.ThisSaveTag,
 						CoinKey = Coin.CoinKey[(int)cType],
 						CoinChange = $"{(isAdd ? '+' : '-')}{value}",
 						Note = note
