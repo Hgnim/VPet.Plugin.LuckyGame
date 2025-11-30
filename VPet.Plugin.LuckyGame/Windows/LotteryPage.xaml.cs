@@ -123,13 +123,6 @@ namespace VPet.Plugin.LuckyGame.Windows
             MessageBoxX.Show("购买彩票成功！\n您的下注代币数为{0}，您下注的号码为:{1}".Translate(coinNum,userNumbers.ToString()),"提示".Translate());
         }
 
-		// 开始开奖
-		private void DrawButton_Click(object sender, RoutedEventArgs e)
-        {
-            Data.enableStart = false;
-
-        }
-
         #region 窗口拖动
 
         private Point startPoint;
