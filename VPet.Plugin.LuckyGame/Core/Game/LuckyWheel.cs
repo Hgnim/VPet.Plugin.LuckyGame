@@ -85,7 +85,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// <returns>与gtc.ChangeCoin返回结果一致</returns>
 		internal byte PlaceCoin(LuckyWheelBuy lwb,GameTokenCoin gtc)
 		{
-            lwb.CoinType ??= gtc.defCoinType;
+            lwb.CoinType ??= gtc.coin.DefCoinType;
             return gtc.ChangeCoin(lwb.Coin, false, lwb.CoinType, cel: new()
             {
                 Note = "幸运转盘购买",

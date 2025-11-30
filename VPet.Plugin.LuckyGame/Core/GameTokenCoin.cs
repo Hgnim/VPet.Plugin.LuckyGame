@@ -1,4 +1,5 @@
 ﻿using LinePutScript.Localization.WPF;
+using System;
 using System.Drawing;
 using VPet_Simulator.Windows.Interface;
 
@@ -13,7 +14,14 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// <param name="rate">该代币汇率</param>
 			/// <param name="fee">该代币兑回手续费</param>
 			internal delegate void CoinInfo(CoinType type,ulong value,uint rate, double fee);
+			/// <summary>
+			/// 代币更改时触发
+			/// </summary>
 			internal CoinInfo OnCoinChange;
+			/// <summary>
+			/// 默认代币类型更改时触发
+			/// </summary>
+			internal Action<CoinType> OnDefCoinTypeChange;
 			/// <summary>
 			/// 代币类型
 			/// </summary>
@@ -178,12 +186,20 @@ namespace VPet.Plugin.LuckyGame.Core {
 					ef_coinWhite = efCoin[(int)CoinType.coinWhite];
 				}
 			}
+			
+			private CoinType defCoinType;
+			/// <summary>
+			/// 默认（或当前）使用的代币类型
+			/// </summary>
+			internal CoinType DefCoinType{
+				set {
+					defCoinType = value;
+					OnDefCoinTypeChange?.Invoke(DefCoinType);
+				}
+				get => defCoinType;
+			}
 		}
 		internal Coin coin;
-		/// <summary>
-		/// 当前/默认 使用的代币类型
-		/// </summary>
-		internal Coin.CoinType defCoinType;
 		/// <summary>
 		/// 代币兑换<br/>
 		/// 在原基础上更变代币的数量，并对桌宠钱进行相应的增减
@@ -206,7 +222,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 4：value参数值等于0<br/>
 		/// </returns>
 		internal byte ExchangeCoin(IMainWindow MW, ulong value, bool isAdd, Coin.CoinType? cType=null) {
-			cType ??= defCoinType;
+			cType ??= coin.DefCoinType;
 			byte ret;
 			try {
 				if (value != 0) {
@@ -259,7 +275,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 留空或为null则使用默认值
 		/// </param>
 		internal double GetExchangeNeedMoney(ulong coinTarget, Coin.CoinType? cType=null) {
-			cType ??= defCoinType;
+			cType ??= coin.DefCoinType;
 			static ulong action(ulong c,uint er) => c * er;
 			return cType switch {
 				Coin.CoinType.coinBlack => action(coinTarget, coin.er_coinBlack),
@@ -279,7 +295,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 留空或为null则使用默认值
 		/// </param>
 		internal double GetExchangeGetMoney(ulong coinTarget, Coin.CoinType? cType=null) {
-			cType ??= defCoinType;
+			cType ??= coin.DefCoinType;
 			static double action(ulong c, uint er, double ef) => (c * er) - ((c * er) * ef);
 			return cType switch {
 				Coin.CoinType.coinBlack => action(coinTarget, coin.er_coinBlack, coin.ef_coinBlack),
@@ -299,7 +315,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 留空或为null则使用默认值
 		/// </param>
 		internal uint GetCoinExchangeRate(Coin.CoinType? cType=null) {
-			cType ??= defCoinType;
+			cType ??= coin.DefCoinType;
 			return cType switch {
 				Coin.CoinType.coinBlack => coin.er_coinBlack,
 				Coin.CoinType.coinBlue => coin.er_coinBlue,
@@ -317,7 +333,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 留空或为null则使用默认值
 		/// </param>
 		internal double GetCoinExchangeFee(Coin.CoinType? cType=null) {
-			cType ??= defCoinType;
+			cType ??= coin.DefCoinType;
 			return cType switch {
 				Coin.CoinType.coinBlack => coin.ef_coinBlack,
 				Coin.CoinType.coinBlue => coin.ef_coinBlue,
@@ -336,7 +352,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 留空或为null则使用默认值
 		/// </param>
 		internal ulong GetCoinAmount(Coin.CoinType? cType=null) {
-			cType ??= defCoinType;
+			cType ??= coin.DefCoinType;
 			return cType switch {
 				Coin.CoinType.coinBlack => coin.CoinBlack,
 				Coin.CoinType.coinBlue => coin.CoinBlue,
@@ -371,7 +387,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 #nullable enable
 		internal byte ChangeCoin(ulong value, bool isAdd, Coin.CoinType? cType=null, DataSave.CoinExchangeLog? cel=null, bool force=false) {
 #nullable disable
-			cType ??= defCoinType;
+			cType ??= coin.DefCoinType;
 			byte ret = 1;
 			ulong action(ulong c) {
 				if (value != 0) {
@@ -478,7 +494,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		internal GameTokenCoin(GameTokenCoin_Args args=null) {
 			args ??= new();
 			coin = new(args.coins, args.erCoin, args.efCoin);
-			defCoinType = args.defCoiType;
+			coin.DefCoinType = args.defCoiType;
 		}
 	}
 }

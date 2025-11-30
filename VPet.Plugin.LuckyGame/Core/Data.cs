@@ -10,5 +10,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			internal required List<Game.Lottery.LotteryBuy> lotteryHave;
 		}
 		internal required Lottery lottery;
+
+		internal required Speak speak;
 	}
 }
