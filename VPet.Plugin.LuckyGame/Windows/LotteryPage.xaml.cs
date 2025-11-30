@@ -126,7 +126,7 @@ namespace VPet.Plugin.LuckyGame.Windows
 		// 开始开奖
 		private void DrawButton_Click(object sender, RoutedEventArgs e)
         {
-            Data.enableStart = false;
+            //Data.enableStart = false;
 
         }
 

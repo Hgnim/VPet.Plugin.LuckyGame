@@ -128,7 +128,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			}
 			catch (SQLiteException ex)
 			{
-				MessageBoxX.Show("数据库备份初始化失败！\n{0}".Translate(ex.Message), "错误".Translate());
+				MessageBoxX.Show("数据初始化失败！\n{0}".Translate(ex.Message), "错误".Translate());
 			}
         }
 		/// <summary>

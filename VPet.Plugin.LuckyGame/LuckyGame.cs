@@ -205,13 +205,13 @@ namespace VPet.Plugin.LuckyGame
                 };
                 var fortune = new MenuItem
                 {
-                    Header = "Fortune".Translate(),
+                    Header = "Lucky Wheel".Translate(),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center
                 };
                 fortune.Click += Fortune_Click;
                 var TokenExchangeMenu = new MenuItem
                 {
-                    Header = "TokenExchangge".Translate(),
+                    Header = "Token Exchangge".Translate(),
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 };
                 TokenExchangeMenu.Click += TokenExchangeMenu_Click;

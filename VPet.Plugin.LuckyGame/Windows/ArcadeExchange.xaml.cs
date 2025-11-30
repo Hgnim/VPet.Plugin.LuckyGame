@@ -42,22 +42,22 @@ namespace VPet.Plugin.LuckyGame.Windows
 			UpdateDisplay();
         }
 
-        private void UpdateDisplay()
+        internal static SolidColorBrush GetCoinColor(GameTokenCoin.Coin.CoinType coinType) {
+			System.Drawing.Color dColor = GameTokenCoin.Coin.CoinColor[(int)coinType];
+            return new SolidColorBrush(
+					Color.FromArgb(
+						dColor.A,
+						dColor.R,
+						dColor.G,
+						dColor.B
+						)
+					);
+		}
+		private void UpdateDisplay()
         {
             CashBalanceText.Text = "¥ {0}".Translate(FormatWithSmartUnits(cashBalance));
             CoinBalanceText.Text = "🎮 {0}".Translate(TokenCoin.GetCoinAmount().ToString("N0"));
-            {
-                System.Drawing.Color dColor = GameTokenCoin.Coin.CoinColor[(int)TokenCoin.defCoinType];
-
-				CoinBalanceText.Foreground = new SolidColorBrush(
-                    Color.FromArgb(
-		                dColor.A,
-		                dColor.R,
-		                dColor.G,
-		                dColor.B
-                        )
-                    );
-            }
+			CoinBalanceText.Foreground = GetCoinColor(TokenCoin.defCoinType);
 		}
 
         private void TokenExchangeButton_Click(object sender, RoutedEventArgs e)
