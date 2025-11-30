@@ -1,4 +1,5 @@
 ﻿using LinePutScript.Localization.WPF;
+using Panuon.WPF.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,14 +14,14 @@ namespace VPet.Plugin.LuckyGame.Windows
 {
     public partial class LotteryPage : Window
     {
-        private GameTokenCoin gtc;
+        private readonly Data Data;
         private ulong coinNum = 1; 
         public int CoinNumValue { set => coinNum = Convert.ToUInt64(value); get => Convert.ToInt32(coinNum); }
-        internal LotteryPage(GameTokenCoin gtc)
+        internal LotteryPage(Data data)
         {
             InitializeComponent();
             InitializeNumbers();
-            this.gtc = gtc;
+            this.Data = data;
         }
 
         private void InitializeNumbers()
@@ -84,13 +85,6 @@ namespace VPet.Plugin.LuckyGame.Windows
         /// 购买彩票按钮按下
         /// </summary>
 		private void BuyButton_Click(object sender, RoutedEventArgs e) {
-
-		}
-
-		// 开始开奖
-		private void DrawButton_Click(object sender, RoutedEventArgs e)
-        {
-            // 开奖逻辑
             Lottery.LotteryNumber userNumbers = new Lottery.LotteryNumber
             {
                 MainNumber = new byte[]
@@ -108,14 +102,32 @@ namespace VPet.Plugin.LuckyGame.Windows
                     (byte)SpecialNumber2.Value
                 }
             };
-            Lottery.LotteryBuy lotteryBuy = new Lottery.LotteryBuy
+            var buy = new Lottery.LotteryBuy
             {
                 lotteryNumber = userNumbers,
-                coinType = gtc.defCoinType,
+                coinType = Data.gtc.defCoinType,
                 coin = coinNum
             };
-            var result = Lottery.Start(lotteryBuy, gtc);
-            ResultText.Text = "本期中奖号码为：{0}，您的中奖金额为{1}代币".Translate(result.WinningNumber.ToString(),result.WinCoin);
+            var result = buy.Pay(Data.gtc);
+            switch (result)
+            {
+                case 3:
+                    MessageBoxX.Show("代币不足，无法购买彩票！", "错误".Translate());
+                    return;
+                case 2:
+                case 1:
+                    MessageBoxX.Show("未知错误，请联系mod作者处理！", "错误".Translate());
+                    return;
+            }
+            Data.lottery.lotteryHave.Add(buy);
+            MessageBoxX.Show("购买彩票成功！\n您的下注代币数为{0}，您下注的号码为:{1}".Translate(coinNum,userNumbers.ToString()),"提示".Translate());
+        }
+
+		// 开始开奖
+		private void DrawButton_Click(object sender, RoutedEventArgs e)
+        {
+            Data.enableStart = false;
+
         }
 
         #region 窗口拖动

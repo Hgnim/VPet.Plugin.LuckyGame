@@ -5,6 +5,7 @@ using Panuon.WPF.UI;
 using System;
 using System.Collections.Generic;
 using System.Runtime.ConstrainedExecution;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 ﻿using VPet.Plugin.LuckyGame.Core;
@@ -21,6 +22,7 @@ namespace VPet.Plugin.LuckyGame
         public ArcadeExchange arcadeExchangeWindow;
         public LotteryPage lotteryWindow;
         internal Data data;
+        private CancellationTokenSource _cts;
         /// <summary>
         /// 表示LoadPlugin函数是否执行完成以加载所有资源，避免出现引用为null的情况
         /// </summary>
@@ -174,12 +176,12 @@ namespace VPet.Plugin.LuckyGame
             {
                 lotteryWindow.Close();
                 lotteryWindow = null;
-                lotteryWindow = new LotteryPage(data.gtc);
+                lotteryWindow = new LotteryPage(data);
                 lotteryWindow.Show();
             }
             else
             {
-                lotteryWindow = new LotteryPage(data.gtc);
+                lotteryWindow = new LotteryPage(data);
                 lotteryWindow.Show();
             }
             }
