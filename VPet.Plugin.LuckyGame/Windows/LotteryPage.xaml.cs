@@ -105,7 +105,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             var buy = new Lottery.LotteryBuy
             {
                 lotteryNumber = userNumbers,
-                coinType = Data.gtc.defCoinType,
+                coinType = Data.gtc.coin.DefCoinType,
                 coin = coinNum
             };
             var result = buy.Pay(Data.gtc);

@@ -20,7 +20,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++)
 				MW.GameSavesData[mainKey][(LinePutScript.gi64)GameTokenCoin.Coin.CoinKey[b]] =
 					(long)dat.gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
-			MW.GameSavesData[mainKey][(LinePutScript.gint)"DefCoinType"] = (int)dat.gtc.defCoinType;
+			MW.GameSavesData[mainKey][(LinePutScript.gint)"DefCoinType"] = (int)dat.gtc.coin.DefCoinType;
 			MW.GameSavesData[mainKey][(LinePutScript.gi64)"SaveTime"] = TimeData;
 			LotteryHave_Save([.. dat.lottery.lotteryHave]);
 

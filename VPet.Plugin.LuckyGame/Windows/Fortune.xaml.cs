@@ -66,6 +66,8 @@ namespace VPet.Plugin.LuckyGame.Windows
             animationTimer.Tick += OnAnimationFrame;
 
 			gtc.coin.OnCoinChange += OnCoinChange;
+            gtc.coin.OnDefCoinTypeChange += (type) =>
+				Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => Updata_CoinBalanceText()));
             Updata_CoinBalanceText();
 
 			// 初始化奖品列表
@@ -310,7 +312,8 @@ namespace VPet.Plugin.LuckyGame.Windows
 			PredictionPointsText.IsEnabled = false;
 			SectorCountComboBox.IsEnabled = false;
             TokenCostText.IsEnabled = false;
-            CoinResult.Text = "";
+            if (AutoStartSwitch.IsChecked != true) CoinResult.Text = "";
+            NowAngleSilder.IsEnabled = false;
 
 			try
             {
@@ -320,8 +323,8 @@ namespace VPet.Plugin.LuckyGame.Windows
                     Coin = coin,
                     Place = place,
                     AllPlace = allPlace,
-                    CoinType = gtc.defCoinType
-                };
+                    CoinType = gtc.coin.DefCoinType
+				};
                 var buyresult = luckyWheel.PlaceCoin(game, gtc);
                 switch (buyresult)
                 {
@@ -339,7 +342,13 @@ namespace VPet.Plugin.LuckyGame.Windows
                 var result = await luckyWheel.StartWheel(game);
 
                 ShowResult(result);
-            }
+
+                if (AutoStartSwitch.IsChecked == true) {
+					isSpinning = false;
+					SpinButton_Click(sender, e);
+                    return;
+                }
+			}
             catch (Exception ex)
             {
                 MessageBox.Show("转盘旋转出错：{0}".Translate(ex.Message), "错误".Translate(),
@@ -347,13 +356,17 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
             finally
             {
-                isSpinning = false;
-                SpinButton.IsEnabled = true;
-                SpinButton.Content = "开始旋转".Translate();
-				ResetButton.IsEnabled = true;
-				PredictionPointsText.IsEnabled = true;
-				SectorCountComboBox.IsEnabled = true;
-				TokenCostText.IsEnabled = true;
+                if (AutoStartSwitch.IsChecked != true) {
+                    isSpinning = false;
+                    SpinButton.IsEnabled = true;
+                    SpinButton.Content = "开始旋转".Translate();
+                    ResetButton.IsEnabled = true;
+                    PredictionPointsText.IsEnabled = true;
+                    SectorCountComboBox.IsEnabled = true;
+                    TokenCostText.IsEnabled = true;
+                    NowAngleSilder.Value = luckyWheel.NowAngle;
+                    NowAngleSilder.IsEnabled = true;
+                }
 			}
         }
 
@@ -503,9 +516,16 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
         }
 
-        private void Updata_CoinBalanceText() {
+		private void NowAngleSilder_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) =>
+            luckyWheel.NowAngle = (float)NowAngleSilder.Value;
+
+		private void AutoStartSwitch_CheckedChange(object sender, RoutedEventArgs e) {
+
+		}
+
+		private void Updata_CoinBalanceText() {
 			CoinBalanceText.Text = "🎮 {0}".Translate(gtc.GetCoinAmount().ToString("N0"));
-			CoinBalanceText.Foreground = ArcadeExchange.GetCoinColor(gtc.defCoinType);
+			CoinBalanceText.Foreground = ArcadeExchange.GetCoinColor(gtc.coin.DefCoinType);
 		}
 
 	}

@@ -43,6 +43,7 @@ namespace VPet.Plugin.LuckyGame
             data = new() {
                 gtc = new GameTokenCoin(gtcArg),
                 lottery = new() { lotteryHave = lllb },
+                speak = new(MW),
             };
             if (!rr.IsFirst) {
                 void ClearCoin(string note) {

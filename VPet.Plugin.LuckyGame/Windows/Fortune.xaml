@@ -135,6 +135,45 @@
                                         />
                             </Grid>
                         </Border>
+
+                        <Border Background="{DynamicResource DARKPrimaryTrans3}" 
+                                CornerRadius="5" Padding="10" Margin="0,5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{ll:Str 转盘调整：}" 
+                                           Foreground="{DynamicResource DARKPrimaryText}"
+                                           FontSize="14" VerticalAlignment="Center"/>
+                                <Slider x:Name="NowAngleSilder" Grid.Column="1" VerticalAlignment="Center"
+                                        IsSnapToTickEnabled="True" Style="{DynamicResource StandardSliderStyle}"
+                                        LargeChange=".5" Maximum="360" Minimum="0" Value="0"
+                                        SmallChange=".01" TickFrequency="0.01"
+                                        ValueChanged="NowAngleSilder_ValueChanged"/>
+                            </Grid>
+                        </Border>
+                        <!--自动旋转设置-->
+                        <Border Background="{DynamicResource DARKPrimaryTrans3}" 
+                                CornerRadius="5" Padding="10" Margin="0,5">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{ll:Str 自动旋转：}" 
+                                    Foreground="{DynamicResource DARKPrimaryText}"
+                                    FontSize="14" VerticalAlignment="Center"/>
+                                <pu:Switch x:Name="AutoStartSwitch" Grid.Column="1" Background="Transparent"
+                                        BorderBrush="{DynamicResource PrimaryDark}" BoxHeight="18" BoxWidth="40"
+                                        CheckedBackground="{DynamicResource Primary}"
+                                        CheckedBorderBrush="{DynamicResource Primary}"
+                                        CheckedToggleBrush="{DynamicResource DARKPrimaryText}" 
+                                        ToggleBrush="{DynamicResource PrimaryDark}" ToggleShadowColor="{x:Null}"
+                                        FontSize="14"
+                                        Checked="AutoStartSwitch_CheckedChange" Unchecked="AutoStartSwitch_CheckedChange" />
+                            </Grid>
+                        </Border>
                     </StackPanel>
                 </Grid>
             </Border>

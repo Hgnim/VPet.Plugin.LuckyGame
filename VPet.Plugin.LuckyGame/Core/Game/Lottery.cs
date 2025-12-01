@@ -118,7 +118,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 			/// <param name="gtc">游戏代币数据</param>
 			/// <returns>返回值与gtc.ChangeCoin函数一致</returns>
 			internal byte Pay(GameTokenCoin gtc) {
-				coinType ??= gtc.defCoinType;
+				coinType ??= gtc.coin.DefCoinType;
 				byte res = gtc.ChangeCoin(coin, false, coinType, cel: new() {
 					Note = "彩票购买",
 					OnlyNote = true
