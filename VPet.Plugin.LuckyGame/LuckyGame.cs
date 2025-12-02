@@ -71,39 +71,36 @@ namespace VPet.Plugin.LuckyGame
                 out DataSave.CoinExchangeLog_CheckResult celcr,
                 out List<Lottery.LotteryBuy> lllb
             );
-                data = new()
-                {
-                    gtc = new GameTokenCoin(gtcArg),
-                    lottery = new() { lotteryHave = lllb },
-                    speak = new(MW),
-                    lotteryResult = new() { lotteryResults = new() }
-                };
-                if (!rr.IsFirst)
-                {
-                    void ClearCoin(string note)
-                    {
-                        for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++)
-                        {
-                            ulong clearCoin = data.gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
-                            data.gtc.ChangeCoin(
-                                clearCoin,
-                                false,
-                                (GameTokenCoin.Coin.CoinType)b,
-                                new()
-                                {
-                                    SaveTag = DataSave.ThisSaveTag,
-                                    CoinKey = Coin.CoinKey[b],
-                                    CoinChange = $"-{clearCoin}",
-                                    Note = note,
-                                },
-                                true
-                            );
-                        }
-                    }
-                    if (celcr.haveDiff)
-                    {//是否与数据库存在差异
-                        for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++)
-                        {
+            data = new() {
+                gtc = new GameTokenCoin(gtcArg),
+                lottery = new() { lotteryHave = lllb },
+                speak = new(MW),
+            };
+            if (!rr.IsFirst) {
+                void ClearCoin(string note) {
+					for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
+						ulong clearCoin = data.gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
+						data.gtc.ChangeCoin(
+							clearCoin,
+							false,
+							(GameTokenCoin.Coin.CoinType)b,
+							new() {
+								SaveTag = DataSave.ThisSaveTag,
+								CoinKey = Coin.CoinKey[b],
+								CoinChange = $"-{clearCoin}",
+								Note = note,
+							},
+							true
+						);
+					}
+				}
+                if (rr.DbHashPass == false) {//如果哈希验证失败，则只执行插件数据清除
+                    ClearCoin("数据篡改，代币清除");
+                    MessageBoxX.Show("检测到幸运游戏数据被篡改", "错误");//用于测试，后期将润色
+                }
+                else {
+                    if (celcr.haveDiff) {//是否与数据库存在差异
+                        for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
                             bool isAdd;
                             if (celcr.coinBack[b] > 0)
                                 isAdd = true;
@@ -115,8 +112,7 @@ namespace VPet.Plugin.LuckyGame
                                 (ulong)Math.Abs(celcr.coinBack[b]),
                                 isAdd,
                                 (GameTokenCoin.Coin.CoinType)b,
-                                new()
-                                {
+                                new() {
                                     SaveTag = DataSave.ThisSaveTag,
                                     CoinKey = Coin.CoinKey[b],
                                     CoinChange = $"{(isAdd ? '+' : '-')}{Math.Abs(celcr.coinBack[b])}",
@@ -125,11 +121,9 @@ namespace VPet.Plugin.LuckyGame
                                 true
                             );
                         }
-                        if (celcr.moneyBack != 0)
-                        {
+                        if (celcr.moneyBack != 0) {
                             MW.Core.Save.Money += celcr.moneyBack;
-                            DataSave.CoinExchangeLog_Insert(new()
-                            {
+                            DataSave.CoinExchangeLog_Insert(new() {
                                 SaveTag = DataSave.ThisSaveTag,
                                 CoinKey = Coin.CoinKey[0],
                                 CoinChange = "0",
@@ -139,8 +133,7 @@ namespace VPet.Plugin.LuckyGame
                         }
                         MessageBoxX.Show("检测到幸运游戏数据异常", "错误");//用于测试，后期将润色
                     }
-                    else if (!celcr.haveData)
-                    {//数据库中是否存在数据
+                    else if (!celcr.haveData) {//数据库中是否存在数据
                         /*gtc.coin.CoinBlack = 0;
                         gtc.coin.CoinBlue = 0;
                         gtc.coin.CoinGreen = 0;
@@ -148,11 +141,6 @@ namespace VPet.Plugin.LuckyGame
                         gtc.coin.CoinWhite = 0;*/
                         ClearCoin("数据丢失，代币清除");
                         MessageBoxX.Show("检测到幸运游戏数据丢失", "错误");//用于测试，后期将润色
-                    }
-                    if (rr.DbHashPass == false)
-                    {
-                        ClearCoin("数据篡改，代币清除");
-                        MessageBoxX.Show("检测到幸运游戏数据被篡改", "错误");//用于测试，后期将润色
                     }
                 }
             }
@@ -287,5 +275,17 @@ namespace VPet.Plugin.LuckyGame
             _timer.Dispose();
 			base.EndGame();
 		}
+
+        internal static void OpenHelpPage(string page) {
+            try {
+                /*Process.Start(
+                    new ProcessStartInfo($"{DataSave.pluginDirectory}/HelpPage/{page}") 
+                                                 { UseShellExecute = true }
+                    );*/
+                ExtensionFunction.StartURL($"{DataSave.pluginDirectory}/HelpPage/{page}");
+            } catch {
+                MessageBoxX.Show("无法打开帮助文件！".Translate(), "错误".Translate());
+            }
+        }
     }
 }

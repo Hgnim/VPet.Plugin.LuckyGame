@@ -232,5 +232,7 @@ namespace VPet.Plugin.LuckyGame.Windows
 			MoneyText_ValueChanged(null, null);
 			UpdateDisplay();
 		}
+
+		private void HelpButton_Click(object sender, RoutedEventArgs e) => LuckyGame.OpenHelpPage("exchangeCoin.html");
 	}
 }

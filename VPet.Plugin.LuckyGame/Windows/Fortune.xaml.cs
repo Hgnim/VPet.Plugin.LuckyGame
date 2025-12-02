@@ -523,10 +523,11 @@ namespace VPet.Plugin.LuckyGame.Windows
 
 		}
 
-		private void Updata_CoinBalanceText() {
+        private void Updata_CoinBalanceText() {
 			CoinBalanceText.Text = "🎮 {0}".Translate(gtc.GetCoinAmount().ToString("N0"));
 			CoinBalanceText.Foreground = ArcadeExchange.GetCoinColor(gtc.coin.DefCoinType);
 		}
 
+		private void HelpButton_Click(object sender, RoutedEventArgs e) => LuckyGame.OpenHelpPage("luckyWheel.html");
 	}
 }

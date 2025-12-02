@@ -202,4 +202,6 @@ namespace VPet.Plugin.LuckyGame.Windows
             _data.IsShowResult = Reminder.IsChecked.HasValue ? Reminder.IsChecked.Value : false;
         }
     }
+		private void HelpButton_Click(object sender, RoutedEventArgs e) => LuckyGame.OpenHelpPage("lottery.html");
+	}
 }
