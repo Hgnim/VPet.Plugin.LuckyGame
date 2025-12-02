@@ -161,7 +161,12 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
             _data.lottery.lotteryHave.Add(buy);
             MessageBoxX.Show("购买彩票成功！\n您的下注代币数为{0}\n您下注的号码为:{1}".Translate(coinNum,userNumbers.ToString()),"提示".Translate());
+            if (AutoClearByBuy.IsChecked == true) ClearAllNumbers_Click(null, null);
         }
+        private void RandomBuyButton_Click(object sender, RoutedEventArgs e) {
+            RandomButton_Click(null, null);
+            BuyButton_Click(null, null);
+		}
 
         #region 窗口拖动
 

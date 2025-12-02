@@ -211,17 +211,22 @@
                                                 Foreground="{DynamicResource DARKPrimaryText}"
                                                 FontSize="12" MinWidth="80"/>
                                 </StackPanel>
-                                <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Button Content="{ll:Str 机器选号并购买}" 
+                                                Click="RandomBuyButton_Click" Padding="20,8" Margin="5" 
+                                                Background="{DynamicResource SuccessBrush}" 
+                                                Foreground="{DynamicResource DARKPrimaryText}" 
+                                                FontWeight="Bold" FontSize="14" MinWidth="100"/>
                                         <Button Content="{ll:Str 购买彩票}" 
                                                 Click="BuyButton_Click" Padding="20,8" Margin="5" 
                                                 Background="{DynamicResource SuccessBrush}" 
                                                 Foreground="{DynamicResource DARKPrimaryText}" 
                                                 FontWeight="Bold" FontSize="14" MinWidth="100"/>
-                                        <StackPanel Orientation="Horizontal">
-                                            <CheckBox x:Name="AutoClearByBuy" Content="{ll:Str 购买后自动清空号码}" Margin="5"/>
-                                            <CheckBox x:Name="Reminder" Content="{ll:Str 开奖提醒}" Margin="5" Click="Reminder_Click"/>
-                                        </StackPanel>
                                     </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox x:Name="AutoClearByBuy" Content="{ll:Str 购买后自动清空号码}" Margin="5"/>
+                                    <CheckBox x:Name="Reminder" Content="{ll:Str 开奖提醒}" Margin="5" Click="Reminder_Click"/>
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                         </Grid>

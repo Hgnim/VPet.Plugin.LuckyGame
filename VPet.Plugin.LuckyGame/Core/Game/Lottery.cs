@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Documents;
 
 namespace VPet.Plugin.LuckyGame.Core.Game {
 	internal class Lottery {
@@ -229,7 +228,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 						action(num);
 					}
 				}
-				TakeWinNumber(out winMainNum, out winDepuNum, 123);
+				TakeWinNumber(out winMainNum, out winDepuNum, seed);
 			}
 			List<LotteryResult> lr = new();
 			foreach(var item in buy) {

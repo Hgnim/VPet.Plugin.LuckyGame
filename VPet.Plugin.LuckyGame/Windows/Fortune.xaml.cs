@@ -298,6 +298,18 @@ namespace VPet.Plugin.LuckyGame.Windows
 
         private async void SpinButton_Click(object sender, RoutedEventArgs e)
         {
+            void over() {
+				isSpinning = false;
+				SpinButton.IsEnabled = true;
+				SpinButton.Content = "开始旋转".Translate();
+				ResetButton.IsEnabled = true;
+				PredictionPointsText.IsEnabled = true;
+				SectorCountComboBox.IsEnabled = true;
+				TokenCostText.IsEnabled = true;
+				NowAngleSilder.Value = luckyWheel.NowAngle;
+				NowAngleSilder.IsEnabled = true;
+			}
+
             if (isSpinning) return;
             if (!isInitialised)
             {
@@ -331,13 +343,16 @@ namespace VPet.Plugin.LuckyGame.Windows
                     case 0:break;
                     case 1:
                         MessageBoxX.Show("出现未知错误，无法进行抽奖".Translate(), "错误".Translate());
+                        over();
                         return;
                     case 2:
                         MessageBoxX.Show("押注代币为0，无法进行抽奖".Translate(), "错误".Translate());
-                        return;
+						over();
+						return;
                     case 3:
-                        MessageBoxX.Show("代币余额不足，无法进行抽奖".Translate(), "错误".Translate());
-                        return;
+                        MessageBoxX.Show("代币余额不足，无法进行抽奖".Translate(), "提示".Translate());
+						over();
+						return;
                 }
                 var result = await luckyWheel.StartWheel(game);
 
@@ -357,15 +372,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             finally
             {
                 if (AutoStartSwitch.IsChecked != true) {
-                    isSpinning = false;
-                    SpinButton.IsEnabled = true;
-                    SpinButton.Content = "开始旋转".Translate();
-                    ResetButton.IsEnabled = true;
-                    PredictionPointsText.IsEnabled = true;
-                    SectorCountComboBox.IsEnabled = true;
-                    TokenCostText.IsEnabled = true;
-                    NowAngleSilder.Value = luckyWheel.NowAngle;
-                    NowAngleSilder.IsEnabled = true;
+                    over();
                 }
 			}
         }

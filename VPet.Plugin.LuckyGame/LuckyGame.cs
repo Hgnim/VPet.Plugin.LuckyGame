@@ -38,36 +38,8 @@ namespace VPet.Plugin.LuckyGame
 
         private void TimeHandle(VPet_Simulator.Core.Main obj)
         {
-            //if (DateTime.Now.Minute % 5 != 0) return;
-            if (data.IsShowing) return;
-            if (data.lottery != null)
-            {
-                if (data.lottery.lotteryHave.Count > 0)
-                {
-                    data.IsShowing = true;
-                    data.lotteryResult.lotteryResults = Lottery.Start(data.lottery.lotteryHave);
-                    data.lottery.lotteryHave.Clear();
-                    if (lotteryWindow != null && lotteryWindow.IsVisible)
-                    {
-                        lotteryWindow.Dispatcher.Invoke(() =>
-                        {
-                            lotteryWindow.ShowResultAnimation();
-                        });
-                    }
-                    else if (data.IsShowResult)
-                    {
-                        MW.Dispatcher.Invoke(() => {
-                            var result = MessageBoxX.Show("本期彩票开奖结果已出，请前往彩票界面查看！".Translate(), "提示".Translate(), button: MessageBoxButton.YesNo);
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                LotteryMenu_Click(this, null);
-                            }
-                        });
-                        data.IsShowing = false;
-                    }
-                }
-            }
-        }
+            DrawOfLotteryCheck();
+		}
 
         public override void LoadPlugin()
         {
@@ -246,8 +218,34 @@ namespace VPet.Plugin.LuckyGame
             else
                 MessageBoxX.Show("插件正在加载，请稍后再试。".Translate(), "正在加载".Translate());
 		}
+		private void DrawOfLotteryCheck(bool force=false) {
+			if (DateTime.Now.Minute % 5 != 0 && !force) return;
+			if (data.IsShowing) return;
+			if (data.lottery != null) {
+				if (data.lottery.lotteryHave.Count > 0) {
+					data.IsShowing = true;
+					data.lotteryResult.lotteryResults = Lottery.Start(data.lottery.lotteryHave);
+					data.lottery.lotteryHave.Clear();
+					if (lotteryWindow != null && lotteryWindow.IsVisible) {
+						lotteryWindow.Dispatcher.Invoke(() => {
+							lotteryWindow.ShowResultAnimation();
+						});
+					}
+					else if (data.IsShowResult) {
+						MW.Dispatcher.Invoke(() => {
+							var result = MessageBoxX.Show("本期彩票开奖结果已出，请前往彩票界面查看！".Translate(), "提示".Translate(), button: MessageBoxButton.YesNo);
+							if (result == MessageBoxResult.Yes) {
+								LotteryMenu_Click(this, null);
+							}
+						});
+						data.IsShowing = false;
+					}
+				}
+			}
+		}
 
-        public override void Setting()
+
+		public override void Setting()
         {
             Fortune_Click(this, null);
         }
@@ -279,6 +277,14 @@ namespace VPet.Plugin.LuckyGame
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                 };
                 LotteryMenu.Click += LotteryMenu_Click;
+#if DEBUG
+                MenuItem DrawOfLottery = new() {
+                    Header = "开奖测试，直接开奖",
+                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                };
+                DrawOfLottery.Click += (s,e)=> DrawOfLotteryCheck(true);
+                menu.Items.Add(DrawOfLottery);
+#endif
                 menu.Items.Add(fortune);
                 menu.Items.Add(TokenExchangeMenu);
                 menu.Items.Add(LotteryMenu);
