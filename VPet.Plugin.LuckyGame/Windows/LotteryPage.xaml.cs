@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using VPet.Plugin.LuckyGame.Controls;
 using VPet.Plugin.LuckyGame.Core;
 using VPet.Plugin.LuckyGame.Core.Game;
 
@@ -17,6 +18,7 @@ namespace VPet.Plugin.LuckyGame.Windows
         private readonly Data _data;
         private ulong coinNum = 2; 
         public int CoinNumValue { set => coinNum = Convert.ToUInt64(value); get => Convert.ToInt32(coinNum); }
+        private List<ulong> resluts = new();
         internal LotteryPage(Data data)
         {
             this._data = data;
@@ -36,13 +38,20 @@ namespace VPet.Plugin.LuckyGame.Windows
             {
                 ReslutBorder.Visibility = Visibility.Visible;
                 NumberRoller.RollingCompleted += OnNumberRollingCompleted;
+                NumberRoller.NumberStopped += OnNumberStopped;
                 NumberRoller.MainMinValue = 0;
                 NumberRoller.MainMaxValue = 30;
                 NumberRoller.SpecialMinValue = 0;
                 NumberRoller.SpecialMaxValue = 9;
+                resluts = Lottery.ResultList2WinCoinDetail(_data.lotteryResult.lotteryResults);
                 NumberRoller.SetFinalNumbers(_data.lotteryResult.lotteryResults.First().WinningNumber.MainNumber, _data.lotteryResult.lotteryResults.First().WinningNumber.DeputyNumber);
-                NumberRoller.StartRollingAnimation(5.0);
+                NumberRoller.StartRollingAnimation(2.0);
             }
+        }
+
+        private void OnNumberStopped(object sender, NumberStoppedEventArgs e)
+        {
+            PrizeText.Text = "您的中奖金额为： {0} 代币".Translate(resluts.ElementAt(e.NumberIndex));
         }
 
         private void OnNumberRollingCompleted(object sender, EventArgs e)

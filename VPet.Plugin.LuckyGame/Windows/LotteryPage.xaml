@@ -235,19 +235,25 @@
                 BorderThickness="2" Padding="20" Name="ReslutBorder" Visibility="Collapsed">
                 <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height=".4*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
+                    
                     <TextBlock Grid.Row="0" Text="{ll:Str 开奖中...}"
                               FontSize="24" FontWeight="Bold"
                               Foreground="{DynamicResource DARKPrimaryText}"
-                              HorizontalAlignment="Center" Margin="10,30,10,70"/>
-                    <controls:LotteryNumberRoller x:Name="NumberRoller" Margin="0,20" Grid.Column="0" Grid.Row="1"/>
+                              HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0"/>
+                    <controls:LotteryNumberRoller x:Name="NumberRoller" Margin="0,10" Grid.Column="0" Grid.Row="1"/>
+                    <TextBlock Grid.Row="2" Text="{ll:Str 您的中奖金额为： 0 代币}" Name="PrizeText"
+                          FontSize="24" FontWeight="Bold"
+                          Foreground="Gold"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0"/>
                 </Grid>
             </Border>
             <!-- 结果显示区域 -->
             <Border Grid.Row="2" Background="{DynamicResource DARKPrimaryTrans2}" 
-                CornerRadius="8" Padding="5" Margin="0,0,0,10">
+                CornerRadius="8" Padding="5" Margin="0,0,0,10" Visibility="Collapsed">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>

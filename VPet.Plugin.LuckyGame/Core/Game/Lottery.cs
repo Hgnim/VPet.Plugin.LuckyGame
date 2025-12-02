@@ -1,6 +1,7 @@
 ﻿using LinePutScript.Localization.WPF;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Documents;
 
 namespace VPet.Plugin.LuckyGame.Core.Game {
@@ -188,6 +189,19 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 					OnlyNote = true
 				});
 		}
+
+		public static List<ulong> ResultList2WinCoinDetail(List<LotteryResult> list)
+		{
+			List<ulong> res = [0,0,0,0,0,0,0,0];
+            foreach (var item in list)
+			{
+				foreach(var (value, index) in item.WinCoin_Detail.Select((value, index) => (value, index)))
+				{
+					res[index] += value;
+                }
+            }
+			return res;
+        }
 
 		/// <summary>
 		/// 彩票开始

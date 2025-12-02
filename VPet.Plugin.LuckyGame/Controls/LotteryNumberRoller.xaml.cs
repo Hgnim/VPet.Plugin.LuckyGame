@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -90,8 +91,12 @@ namespace VPet.Plugin.LuckyGame.Controls
 
         // 动画控制变量
         private DispatcherTimer _animationTimer;
+        private DispatcherTimer _stopSequenceTimer;
         private int _currentFrame = 0;
         private int TotalFrames = 120; // 总帧数（4秒，30fps）
+        private int _currentStopIndex = 0; // 当前要停止的数字索引
+        private const double StopIntervalSeconds = 1.5; // 停止间隔（秒）
+        private const int StopIntervalFrames = 15; // 停止间隔（帧数，0.5秒 * 30fps）
 
         // 每个数字的动画状态
         private class NumberAnimationState
@@ -113,6 +118,7 @@ namespace VPet.Plugin.LuckyGame.Controls
             _random = new Random();
             InitializeVisualElements();
             InitializeAnimationTimer();
+            InitializeStopSequenceTimer();
         }
 
         private void InitializeAnimationTimer()
@@ -120,6 +126,13 @@ namespace VPet.Plugin.LuckyGame.Controls
             _animationTimer = new DispatcherTimer();
             _animationTimer.Interval = TimeSpan.FromMilliseconds(33); // 约30fps
             _animationTimer.Tick += OnAnimationTimerTick;
+        }
+
+        private void InitializeStopSequenceTimer()
+        {
+            _stopSequenceTimer = new DispatcherTimer();
+            _stopSequenceTimer.Interval = TimeSpan.FromSeconds(StopIntervalSeconds);
+            _stopSequenceTimer.Tick += OnStopSequenceTimerTick;
         }
 
         private void InitializeVisualElements()
@@ -190,9 +203,11 @@ namespace VPet.Plugin.LuckyGame.Controls
         {
             if (IsRolling || !_isInitialized)
                 return;
+
             TotalFrames = (int)(durationSeconds * 30); // 根据持续时间调整总帧数
             IsRolling = true;
             _currentFrame = 0;
+            _currentStopIndex = 0;
 
             // 验证号码数据
             ValidateNumbers();
@@ -208,6 +223,16 @@ namespace VPet.Plugin.LuckyGame.Controls
 
             // 启动动画定时器
             _animationTimer.Start();
+
+            // 延迟一段时间后开始顺序停止（让数字先滚动一会儿）
+            var startStopTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(durationSeconds) };
+            startStopTimer.Tick += (s, e) =>
+            {
+                startStopTimer.Stop();
+                _stopSequenceTimer.Start();
+                StartNextNumberStop(); // 开始第一个数字的停止
+            };
+            startStopTimer.Start();
 
             // 触发开始事件
             RollingStarted?.Invoke(this, EventArgs.Empty);
@@ -305,22 +330,90 @@ namespace VPet.Plugin.LuckyGame.Controls
             // 计算动画进度 (0.0 - 1.0)
             double progress = (double)_currentFrame / TotalFrames;
 
-            // 更新数字显示
+            // 更新数字显示（只更新未停止的数字）
             UpdateNumberAnimations(progress);
 
-            // 检查动画是否完成
-            if (_currentFrame >= TotalFrames)
+            // 检查动画是否完成（所有数字都已停止）
+            if (AreAllNumbersStopped())
             {
                 CompleteAnimation();
             }
         }
 
+        private void OnStopSequenceTimerTick(object sender, EventArgs e)
+        {
+            // 停止当前数字并开始下一个数字的停止
+            StopCurrentNumber();
+            StartNextNumberStop();
+        }
+
+        private void StartNextNumberStop()
+        {
+            // 如果所有数字都已停止，停止定时器
+            if (_currentStopIndex >= 8)
+            {
+                _stopSequenceTimer.Stop();
+                return;
+            }
+
+            // 为下一个数字准备停止（减速效果）
+            PrepareNumberForStop(_currentStopIndex);
+        }
+
+        private void PrepareNumberForStop(int numberIndex)
+        {
+            // 这里可以添加减速效果，比如降低滚动速度
+            // 当前实现中，数字会在下一次动画更新时自然停止
+        }
+
+        private void StopCurrentNumber()
+        {
+            if (_currentStopIndex >= 8) return;
+
+            NumberAnimationState state = GetNumberState(_currentStopIndex);
+            TextBlock textBlock = GetNumberTextBlock(_currentStopIndex);
+
+            if (state != null && textBlock != null && !state.IsStopped)
+            {
+                // 停止这个数字
+                state.CurrentDisplayValue = state.FinalValue;
+                state.IsStopped = true;
+                state.StopFrame = _currentFrame;
+                textBlock.Text = state.FinalValue.ToString();
+
+                // 应用高亮效果
+                textBlock.Foreground = Brushes.Gold;
+
+                // 触发数字停止事件
+                NumberStopped?.Invoke(this, new NumberStoppedEventArgs
+                {
+                    NumberIndex = _currentStopIndex,
+                    FinalValue = state.FinalValue,
+                    IsMainNumber = _currentStopIndex < 6
+                });
+
+                // 移动到下一个数字
+                _currentStopIndex++;
+            }
+            else
+            {
+                // 如果当前数字已经停止或无效，直接移动到下一个
+                _currentStopIndex++;
+            }
+
+            // 如果所有数字都已停止，停止定时器
+            if (_currentStopIndex >= 8)
+            {
+                _stopSequenceTimer.Stop();
+            }
+        }
+
         private void UpdateNumberAnimations(double progress)
         {
-            // 计算当前滚动速度
+            // 计算当前滚动速度（只对未停止的数字有效）
             int speed = CalculateCurrentSpeed(progress);
 
-            // 更新主号码动画
+            // 更新主号码动画（只更新未停止的）
             for (int i = 0; i < _mainNumberStates.Count; i++)
             {
                 if (!_mainNumberStates[i].IsStopped)
@@ -329,10 +422,10 @@ namespace VPet.Plugin.LuckyGame.Controls
                 }
             }
 
-            // 更新副号码动画（延迟开始）
+            // 更新副号码动画（只更新未停止的）
             for (int i = 0; i < _specialNumberStates.Count; i++)
             {
-                if (!_specialNumberStates[i].IsStopped && progress > 0.1) // 延迟10%开始
+                if (!_specialNumberStates[i].IsStopped)
                 {
                     UpdateSingleNumberAnimation(_specialNumberStates[i], _specialNumberTexts[i], speed, progress, i + 6);
                 }
@@ -341,97 +434,101 @@ namespace VPet.Plugin.LuckyGame.Controls
 
         private int CalculateCurrentSpeed(double progress)
         {
-            if (progress < 0.7)
+            // 基础速度
+            int baseSpeed = 5;
+
+            // 根据进度调整速度
+            if (progress < 0.3)
             {
-                // 快速阶段：高速滚动
-                return 5 + (int)(10 * (1 - progress)); // 开始快，逐渐稍慢
+                // 开始阶段：快速滚动
+                return baseSpeed + 3;
+            }
+            else if (progress < 0.7)
+            {
+                // 中间阶段：中等速度
+                return baseSpeed;
             }
             else
             {
-                // 减速阶段：逐渐变慢
-                double slowFactor = (1.0 - progress) / 0.3; // 从1.0到0.0
-                return 1 + (int)(4 * slowFactor); // 从5降到1
+                // 结束阶段：慢速（为停止做准备）
+                return Math.Max(1, baseSpeed - 2);
             }
         }
 
         private void UpdateSingleNumberAnimation(NumberAnimationState state, TextBlock textBlock, int speed, double progress, int numberIndex)
         {
-            // 检查是否应该停止在这个数字
-            if (ShouldStopAtThisNumber(state, progress, numberIndex))
-            {
-                state.CurrentDisplayValue = state.FinalValue;
-                state.IsStopped = true;
-                state.StopFrame = _currentFrame;
-                textBlock.Text = state.FinalValue.ToString();
-
-                // 触发数字停止事件
-                NumberStopped?.Invoke(this, new NumberStoppedEventArgs
-                {
-                    NumberIndex = numberIndex,
-                    FinalValue = state.FinalValue
-                });
-                return;
-            }
+            if (state.IsStopped) return;
 
             // 继续滚动
             int newValue = state.CurrentDisplayValue + speed;
 
-            newValue = (newValue + 1) % state.MaxValue;
+            // 处理数值边界（循环）
+            if (newValue > state.MaxValue)
+            {
+                newValue = state.MinValue + (newValue - state.MaxValue - 1);
+            }
+            else if (newValue < state.MinValue)
+            {
+                newValue = state.MaxValue - (state.MinValue - newValue - 1);
+            }
 
             state.CurrentDisplayValue = newValue;
             textBlock.Text = newValue.ToString();
 
-            // 接近目标值时添加视觉反馈
-            if (progress > 0.8 && Math.Abs(newValue - state.FinalValue) <= 3)
+            // 如果这个数字即将停止，添加视觉反馈
+            if (numberIndex == _currentStopIndex && progress > 0.3)
             {
-                textBlock.Foreground = Brushes.Gold;
+                textBlock.Foreground = Brushes.Orange;
             }
         }
 
-        private bool ShouldStopAtThisNumber(NumberAnimationState state, double progress, int numberIndex)
+        private NumberAnimationState GetNumberState(int numberIndex)
         {
-            if (state.IsStopped)
-                return false;
-
-            // 在减速阶段才有机会停止
-            if (progress < 0.7)
-                return false;
-
-            // 计算停止概率
-            double stopProbability = CalculateStopProbability(progress, numberIndex);
-
-            // 检查当前显示值是否接近最终值
-            bool isNearTarget = Math.Abs(state.CurrentDisplayValue - state.FinalValue) <= 2;
-
-            // 如果接近目标值，增加停止概率
-            if (isNearTarget)
+            if (numberIndex < 6)
             {
-                stopProbability *= 2.0;
+                return numberIndex < _mainNumberStates.Count ? _mainNumberStates[numberIndex] : null;
             }
-
-            // 最后一个数字强制在动画结束时停止
-            if (numberIndex == 7 && progress > 0.95)
+            else
             {
-                return true;
+                int specialIndex = numberIndex - 6;
+                return specialIndex < _specialNumberStates.Count ? _specialNumberStates[specialIndex] : null;
             }
-
-            return _random.NextDouble() < stopProbability;
         }
 
-        private double CalculateStopProbability(double progress, int numberIndex)
+        private TextBlock GetNumberTextBlock(int numberIndex)
         {
-            // 基础停止概率
-            double baseProbability = (progress - 0.7) / 0.3; // 从0到1
+            if (numberIndex < 6)
+            {
+                return numberIndex < _mainNumberTexts.Count ? _mainNumberTexts[numberIndex] : null;
+            }
+            else
+            {
+                int specialIndex = numberIndex - 6;
+                return specialIndex < _specialNumberTexts.Count ? _specialNumberTexts[specialIndex] : null;
+            }
+        }
 
-            // 根据数字位置调整概率（前面的数字先停）
-            double positionFactor = 1.0 - (numberIndex * 0.1);
+        private bool AreAllNumbersStopped()
+        {
+            // 检查主号码
+            foreach (var state in _mainNumberStates)
+            {
+                if (!state.IsStopped) return false;
+            }
 
-            return baseProbability * positionFactor * 0.3;
+            // 检查副号码
+            foreach (var state in _specialNumberStates)
+            {
+                if (!state.IsStopped) return false;
+            }
+
+            return true;
         }
 
         private void CompleteAnimation()
         {
             _animationTimer.Stop();
+            _stopSequenceTimer.Stop();
             IsRolling = false;
 
             // 确保所有数字都显示最终值
@@ -442,6 +539,7 @@ namespace VPet.Plugin.LuckyGame.Controls
                 if (i < _mainNumberTexts.Count)
                 {
                     _mainNumberTexts[i].Text = _mainNumberStates[i].FinalValue.ToString();
+                    _mainNumberTexts[i].Foreground = Brushes.Gold;
                 }
             }
 
@@ -452,14 +550,18 @@ namespace VPet.Plugin.LuckyGame.Controls
                 if (i < _specialNumberTexts.Count)
                 {
                     _specialNumberTexts[i].Text = _specialNumberStates[i].FinalValue.ToString();
+                    _specialNumberTexts[i].Foreground = Brushes.Gold;
                 }
             }
-
-            // 恢复文本颜色
-            ResetTextColors();
-
-            // 触发完成事件
-            RollingCompleted?.Invoke(this, EventArgs.Empty);
+            Task.Run(async () =>
+            {
+                await Task.Delay(Convert.ToInt32(500 * StopIntervalSeconds));
+                _ = Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    RollingCompleted?.Invoke(this, EventArgs.Empty);
+                }));
+            });
+            
         }
 
         /// <summary>
@@ -470,6 +572,23 @@ namespace VPet.Plugin.LuckyGame.Controls
             if (!IsRolling) return;
 
             _animationTimer.Stop();
+            _stopSequenceTimer.Stop();
+
+            // 立即停止所有数字
+            for (int i = 0; i < 8; i++)
+            {
+                NumberAnimationState state = GetNumberState(i);
+                TextBlock textBlock = GetNumberTextBlock(i);
+
+                if (state != null && textBlock != null)
+                {
+                    state.CurrentDisplayValue = state.FinalValue;
+                    state.IsStopped = true;
+                    textBlock.Text = state.FinalValue.ToString();
+                    textBlock.Foreground = Brushes.Gold;
+                }
+            }
+
             CompleteAnimation();
         }
 
@@ -507,12 +626,12 @@ namespace VPet.Plugin.LuckyGame.Controls
 
             for (int i = 0; i < 6; i++)
             {
-                mainNumbers.Add(_random.Next(MainMinValue, MainMaxValue + 1) % MainMaxValue);
+                mainNumbers.Add(_random.Next(MainMinValue, MainMaxValue + 1));
             }
 
             for (int i = 0; i < 2; i++)
             {
-                specialNumbers.Add(_random.Next(SpecialMinValue, SpecialMaxValue + 1) % SpecialMaxValue);
+                specialNumbers.Add(_random.Next(SpecialMinValue, SpecialMaxValue + 1));
             }
 
             MainNumbers = mainNumbers;
@@ -553,5 +672,6 @@ namespace VPet.Plugin.LuckyGame.Controls
     {
         public int NumberIndex { get; set; }     // 数字索引（0-5主号码，6-7副号码）
         public int FinalValue { get; set; }       // 最终显示的值
+        public bool IsMainNumber { get; set; }    // 是否为主号码
     }
 }

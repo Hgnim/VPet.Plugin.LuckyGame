@@ -24,7 +24,6 @@ namespace VPet.Plugin.LuckyGame
         public LotteryPage lotteryWindow;
         internal Data data;
         private CancellationTokenSource _cts;
-        private Timer _timer;
         /// <summary>
         /// 表示LoadPlugin函数是否执行完成以加载所有资源，避免出现引用为null的情况
         /// </summary>
@@ -34,39 +33,42 @@ namespace VPet.Plugin.LuckyGame
 		public override string PluginName => "LuckyGame";
         public override void GameLoaded()
         {
-            _timer = new Timer((state) =>
+            MW.Main.TimeHandle += TimeHandle;
+        }
+
+        private void TimeHandle(VPet_Simulator.Core.Main obj)
+        {
+            //if (DateTime.Now.Minute % 5 != 0) return;
+            if (data.IsShowing) return;
+            if (data.lottery != null)
             {
-                if (DateTime.Now.Minute % 5 != 0) return;
-                if (data.IsShowing) return;
-                if (data.lottery != null)
+                if (data.lottery.lotteryHave.Count > 0)
                 {
-                    if (data.lottery.lotteryHave.Count > 0)
+                    data.IsShowing = true;
+                    data.lotteryResult.lotteryResults = Lottery.Start(data.lottery.lotteryHave);
+                    data.lottery.lotteryHave.Clear();
+                    if (lotteryWindow != null && lotteryWindow.IsVisible)
                     {
-                        data.IsShowing = true;
-                        data.lotteryResult.lotteryResults = Lottery.Start(data.lottery.lotteryHave);
-                        data.lottery.lotteryHave.Clear();
-                        if (lotteryWindow != null && lotteryWindow.IsVisible)
+                        lotteryWindow.Dispatcher.Invoke(() =>
                         {
-                            lotteryWindow.Dispatcher.Invoke(() =>
+                            lotteryWindow.ShowResultAnimation();
+                        });
+                    }
+                    else if (data.IsShowResult)
+                    {
+                        MW.Dispatcher.Invoke(() => {
+                            var result = MessageBoxX.Show("本期彩票开奖结果已出，请前往彩票界面查看！".Translate(), "提示".Translate(), button: MessageBoxButton.YesNo);
+                            if (result == MessageBoxResult.Yes)
                             {
-                                lotteryWindow.ShowResultAnimation();
-                            });
-                        }
-                        else if(data.IsShowResult)
-                        {
-                            MW.Dispatcher.Invoke(() => {
-                                var result = MessageBoxX.Show("本期彩票开奖结果已出，请前往彩票界面查看！".Translate(), "提示".Translate(),button:MessageBoxButton.YesNo);
-                                if (result == MessageBoxResult.Yes)
-                                {
-                                    LotteryMenu_Click(this, null);
-                                }
-                            });
-                            data.IsShowing = false;
-                        }
+                                LotteryMenu_Click(this, null);
+                            }
+                        });
+                        data.IsShowing = false;
                     }
                 }
-            }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(20));
+            }
         }
+
         public override void LoadPlugin()
         {
             try
@@ -294,7 +296,6 @@ namespace VPet.Plugin.LuckyGame
 		}
 		public override void EndGame() {
             DataSave.Save(MW, data);
-            _timer.Dispose();
 			base.EndGame();
 		}
 
