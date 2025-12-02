@@ -9,8 +9,19 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// </summary>
 			internal required List<Game.Lottery.LotteryBuy> lotteryHave;
 		}
+		internal class LotteryResult
+		{
+			internal required List<Game.Lottery.LotteryResult> lotteryResults;
+        }
+
 		internal required Lottery lottery;
 
-		internal required Speak speak;
+		internal required LotteryResult lotteryResult;
+
+        internal required Speak speak;
+
+		internal bool IsShowResult = false;
+
+		internal bool IsShowing = false;
 	}
 }

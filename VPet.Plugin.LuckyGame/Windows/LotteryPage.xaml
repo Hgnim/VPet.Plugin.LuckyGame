@@ -6,6 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         xmlns:pu="clr-namespace:Panuon.WPF.UI;assembly=Panuon.WPF.UI"
+        xmlns:controls="clr-namespace:VPet.Plugin.LuckyGame.Controls"
         MinHeight="500" MinWidth="700" MaxHeight="800" MaxWidth="800" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight"
         Background="Transparent" AllowsTransparency="True" WindowStyle="None">
     <Window.Resources>
@@ -217,7 +218,7 @@
                                                 FontWeight="Bold" FontSize="14" MinWidth="100"/>
                                         <StackPanel Orientation="Horizontal">
                                             <CheckBox x:Name="AutoClearByBuy" Content="{ll:Str 购买后自动清空号码}" Margin="5"/>
-                                            <CheckBox x:Name="Reminder" Content="{ll:Str 开奖提醒}" Margin="5"/>
+                                            <CheckBox x:Name="Reminder" Content="{ll:Str 开奖提醒}" Margin="5" Click="Reminder_Click"/>
                                         </StackPanel>
                                     </StackPanel>
                             </StackPanel>
@@ -228,10 +229,21 @@
                     
                 </Grid>
             </Border>
-
-            <!-- Draw animation overlay canvas - hidden by default -->
-            <Canvas x:Name="DrawCanvas" Grid.Row="1" Margin="20" Background="Transparent" Visibility="Collapsed" IsHitTestVisible="False"/>
-
+            <Border Grid.Row="1" Margin="20" Background="{DynamicResource DARKPrimary}"
+                CornerRadius="10" BorderBrush="{DynamicResource DARKPrimaryLighter}" 
+                BorderThickness="2" Padding="20" Name="ReslutBorder" Visibility="Collapsed">
+                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="{ll:Str 开奖中...}"
+                              FontSize="24" FontWeight="Bold"
+                              Foreground="{DynamicResource DARKPrimaryText}"
+                              HorizontalAlignment="Center" Margin="10,30,10,70"/>
+                    <controls:LotteryNumberRoller x:Name="NumberRoller" Margin="0,20" Grid.Column="0" Grid.Row="1"/>
+                </Grid>
+            </Border>
             <!-- 结果显示区域 -->
             <Border Grid.Row="2" Background="{DynamicResource DARKPrimaryTrans2}" 
                 CornerRadius="8" Padding="5" Margin="0,0,0,10">
@@ -247,83 +259,7 @@
                          FontSize="16" FontWeight="Bold"
                          Foreground="{DynamicResource SuccessBrush}"
                          HorizontalAlignment="Center" VerticalAlignment="Center"
-                         Text="{ll:Str 等待开奖...}"/>
-                </Grid>
-            </Border>
-            <!-- 开奖动画覆盖层 -->
-            <Border x:Name="AnimationOverlay" Grid.Row="0" Grid.RowSpan="3"
-                Background="{DynamicResource DARKPrimary}" 
-                CornerRadius="10" Visibility="Collapsed">
-                <Grid>
-                    <!-- 半透明背景 -->
-                    <Rectangle Fill="{DynamicResource DARKPrimaryTrans4}" Opacity="0.9"/>
-
-                    <!-- 动画内容 -->
-                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <!-- 标题 -->
-                        <TextBlock Text="{ll:Str 开奖中...}" 
-                          FontSize="24" FontWeight="Bold"
-                          Foreground="{DynamicResource DARKPrimaryText}"
-                          HorizontalAlignment="Center" Margin="0,0,0,30"/>
-
-                        <!-- 号码滚动区域 -->
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <!-- 6个主号码滚动框 -->
-                            <ItemsControl x:Name="MainNumberDisplays" ItemsSource="{Binding MainNumberAnimations}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" Margin="0,0,20,0"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Width="60" Height="80" CornerRadius="8" 
-                                       Background="{DynamicResource DARKPrimaryTrans4}"
-                                       BorderBrush="{DynamicResource DARKPrimaryLighter}"
-                                       BorderThickness="2" Margin="5">
-                                            <Viewbox>
-                                                <TextBlock x:Name="NumberText" Text="{Binding CurrentNumber}" 
-                                                  Foreground="{DynamicResource SuccessBrush}"
-                                                  FontSize="24" FontWeight="Bold"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                  TextAlignment="Center"/>
-                                            </Viewbox>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <!-- 分隔符 -->
-                            <TextBlock Text="+" FontSize="24" FontWeight="Bold"
-                              Foreground="{DynamicResource DARKPrimaryText}"
-                              VerticalAlignment="Center" Margin="0,0,20,0"/>
-
-                            <!-- 2个副号码滚动框 -->
-                            <ItemsControl x:Name="SpecialNumberDisplays" ItemsSource="{Binding SpecialNumberAnimations}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Width="60" Height="80" CornerRadius="8" 
-                                       Background="{DynamicResource DARKPrimaryTrans4}"
-                                       BorderBrush="{DynamicResource InfoBrush}"
-                                       BorderThickness="2" Margin="5">
-                                            <Viewbox>
-                                                <TextBlock x:Name="SpecialNumberText" Text="{Binding CurrentNumber}" 
-                                                  Foreground="{DynamicResource InfoBrush}"
-                                                  FontSize="24" FontWeight="Bold"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                  TextAlignment="Center"/>
-                                            </Viewbox>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </StackPanel>
+                         Text="{ll:Str 每五分钟开奖一次}"/>
                 </Grid>
             </Border>
 

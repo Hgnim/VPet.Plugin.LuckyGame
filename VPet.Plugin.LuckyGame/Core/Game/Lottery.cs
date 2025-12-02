@@ -1,4 +1,7 @@
-﻿using System;
+﻿using LinePutScript.Localization.WPF;
+using System;
+using System.Collections.Generic;
+using System.Windows.Documents;
 
 namespace VPet.Plugin.LuckyGame.Core.Game {
 	internal class Lottery {
@@ -85,7 +88,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
             {
                 string mainNumStr = string.Join(" ", MainNumber);
 				string deputyNumStr = string.Join(" ", DeputyNumber);
-				return $"主号码: [{mainNumStr}] 副号码: [{deputyNumStr}]";
+				return $"主号码: [{mainNumStr}] 副号码: [{deputyNumStr}]".Translate();
             }
 		}
 		/// <summary>
@@ -191,7 +194,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// </summary>
 		/// <param name="buy">购买信息组</param>
 		/// <returns>返回结果信息组</returns>
-		internal static LotteryResult[] Start(LotteryBuy[] buy) {
+		internal static List<LotteryResult> Start(List<LotteryBuy> buy) {
 			byte[] winMainNum, winDepuNum;
 			{
 				long seed = DataSave.TimeData;
@@ -214,8 +217,8 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 				}
 				TakeWinNumber(out winMainNum, out winDepuNum, 123);
 			}
-			LotteryResult[] lr=new LotteryResult[buy.Length];
-			for (uint i = 0; i < buy.Length; i++) {
+			List<LotteryResult> lr = new();
+			foreach(var item in buy) {
 				byte mainWinCount, deputyWinCount;
 				bool[] mainWinLoc, deputyWinLoc;
 				{
@@ -242,14 +245,14 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 						out mainWinLoc,
 						6,
 						winMainNum,
-						buy[i].lotteryNumber.MainNumber
+						item.lotteryNumber.MainNumber
 					);
 					checkWin(
 						out deputyWinCount,
 						out deputyWinLoc,
 						2,
 						winDepuNum,
-						buy[i].lotteryNumber.DeputyNumber
+						item.lotteryNumber.DeputyNumber
 					);
 				}
 
@@ -264,7 +267,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 								if (b2 < 6) 
 									if (mainWinLoc[b2]) winN++;
 							}
-							winCoDet_doub[b] = Math.Pow(winN, buy[i].coin);
+							winCoDet_doub[b] = Math.Pow(winN, item.coin);
 						}
 						else {
 							for(byte b2 = 0; b2 < b-6+1; b2++) {
@@ -279,8 +282,8 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 						winCoDet[b] = (ulong)Math.Round(winCoDet_doub[b]);
 					}
 				}
-				lr[i] = new() {
-					BuyInfo = buy[i],
+				lr.Add(new() {
+					BuyInfo = item,
 					WinningNumber = new() {
 						MainNumber = winMainNum,
 						DeputyNumber = winDepuNum
@@ -290,7 +293,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 					MainWinLoc = mainWinLoc,
 					DeputyWinLoc = deputyWinLoc,
 					WinCoin_Detail = winCoDet
-				};
+				});
 			}
 			return lr;
 		}

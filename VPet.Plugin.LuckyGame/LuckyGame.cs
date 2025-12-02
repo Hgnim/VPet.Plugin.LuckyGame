@@ -8,7 +8,8 @@ using System.Runtime.ConstrainedExecution;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-﻿using VPet.Plugin.LuckyGame.Core;
+using System.Windows.Threading;
+using VPet.Plugin.LuckyGame.Core;
 using VPet.Plugin.LuckyGame.Core.Game;
 using VPet.Plugin.LuckyGame.Core.Tool;
 using VPet.Plugin.LuckyGame.Windows;
@@ -23,6 +24,7 @@ namespace VPet.Plugin.LuckyGame
         public LotteryPage lotteryWindow;
         internal Data data;
         private CancellationTokenSource _cts;
+        private Timer _timer;
         /// <summary>
         /// 表示LoadPlugin函数是否执行完成以加载所有资源，避免出现引用为null的情况
         /// </summary>
@@ -30,88 +32,131 @@ namespace VPet.Plugin.LuckyGame
         public LuckyGame(IMainWindow mainwin) : base(mainwin) {
 		}
 		public override string PluginName => "LuckyGame";
+        public override void GameLoaded()
+        {
+            _timer = new Timer((state) =>
+            {
+                //if (DateTime.Now.Minute % 5 != 0) return;
+                if (data.IsShowing) return;
+                if (data.lottery != null)
+                {
+                    if (data.lottery.lotteryHave.Count > 0)
+                    {
+                        data.lotteryResult.lotteryResults = Lottery.Start(data.lottery.lotteryHave);
+                        data.lottery.lotteryHave.Clear();
+                        if (lotteryWindow != null && lotteryWindow.IsVisible)
+                        {
+                            lotteryWindow.Dispatcher.Invoke(() =>
+                            {
+                                lotteryWindow.ShowResultAnimation();
+                            });
+                        }
+                        else if(data.IsShowResult)
+                        {
+                            MW.Dispatcher.Invoke(() => MessageBoxX.Show("本期彩票开奖结果已出，请前往彩票界面查看！".Translate(), "提示".Translate()));
+                        }
+                        data.IsShowing = true;
+                    }
+                }
+            }, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(20));
+        }
         public override void LoadPlugin()
         {
-            //try { 
-            DataSave.Read(
-                MW, 
-                out DataSave.ReadResult rr, 
-                out GameTokenCoin.GameTokenCoin_Args gtcArg, 
+            try
+            {
+                DataSave.Read(
+                MW,
+                out DataSave.ReadResult rr,
+                out GameTokenCoin.GameTokenCoin_Args gtcArg,
                 out DataSave.CoinExchangeLog_CheckResult celcr,
                 out List<Lottery.LotteryBuy> lllb
             );
-            data = new() {
-                gtc = new GameTokenCoin(gtcArg),
-                lottery = new() { lotteryHave = lllb },
-                speak = new(MW),
-            };
-            if (!rr.IsFirst) {
-                void ClearCoin(string note) {
-					for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
-						ulong clearCoin = data.gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
-						data.gtc.ChangeCoin(
-							clearCoin,
-							false,
-							(GameTokenCoin.Coin.CoinType)b,
-							new() {
-								SaveTag = DataSave.ThisSaveTag,
-								CoinKey = Coin.CoinKey[b],
-								CoinChange = $"-{clearCoin}",
-								Note = note,
-							},
-							true
-						);
-					}
-				}
-                if (celcr.haveDiff) {//是否与数据库存在差异
-                    for(byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
-                        bool isAdd;
-                        if (celcr.coinBack[b] > 0)
-                            isAdd = true;
-                        else if (celcr.coinBack[b] < 0)
-                            isAdd = false;
-                        else
-                            break;
-                        data.gtc.ChangeCoin(
-                            (ulong)Math.Abs(celcr.coinBack[b]),
-                            isAdd,
-                            (GameTokenCoin.Coin.CoinType)b,
-                            new() {
-								SaveTag = DataSave.ThisSaveTag,
-								CoinKey = Coin.CoinKey[b],
-								CoinChange = $"{(isAdd ? '+' : '-')}{Math.Abs(celcr.coinBack[b])}",
-								Note = "数据异常，代币回滚",//注意此行不要翻译，在别处有对其文本的判断
-							},
-                            true
-                        );
+                data = new()
+                {
+                    gtc = new GameTokenCoin(gtcArg),
+                    lottery = new() { lotteryHave = lllb },
+                    speak = new(MW),
+                    lotteryResult = new() { lotteryResults = new() }
+                };
+                if (!rr.IsFirst)
+                {
+                    void ClearCoin(string note)
+                    {
+                        for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++)
+                        {
+                            ulong clearCoin = data.gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
+                            data.gtc.ChangeCoin(
+                                clearCoin,
+                                false,
+                                (GameTokenCoin.Coin.CoinType)b,
+                                new()
+                                {
+                                    SaveTag = DataSave.ThisSaveTag,
+                                    CoinKey = Coin.CoinKey[b],
+                                    CoinChange = $"-{clearCoin}",
+                                    Note = note,
+                                },
+                                true
+                            );
+                        }
                     }
-                    if (celcr.moneyBack != 0) {
-                        MW.Core.Save.Money += celcr.moneyBack;
-                        DataSave.CoinExchangeLog_Insert(new() {
-							SaveTag = DataSave.ThisSaveTag,
-							CoinKey = Coin.CoinKey[0],
-							CoinChange = "0",
-							MoneyChange = $"{(celcr.moneyBack>0 ? '+' : '-')}{Math.Abs(celcr.moneyBack)}",
-							Note = "数据异常，金钱回滚",//注意此行不要翻译，在别处有对其文本的判断
-						});
-					}
-					MessageBoxX.Show("检测到幸运游戏数据异常", "错误");//用于测试，后期将润色
-				}
-                else if (!celcr.haveData) {//数据库中是否存在数据
-                    /*gtc.coin.CoinBlack = 0;
-                    gtc.coin.CoinBlue = 0;
-                    gtc.coin.CoinGreen = 0;
-                    gtc.coin.CoinRed = 0;
-                    gtc.coin.CoinWhite = 0;*/
-                    ClearCoin("数据丢失，代币清除");
-					MessageBoxX.Show("检测到幸运游戏数据丢失", "错误");//用于测试，后期将润色
-				}
-                if (rr.DbHashPass == false) {
-					ClearCoin("数据篡改，代币清除");
-					MessageBoxX.Show("检测到幸运游戏数据被篡改", "错误");//用于测试，后期将润色
-				}
+                    if (celcr.haveDiff)
+                    {//是否与数据库存在差异
+                        for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++)
+                        {
+                            bool isAdd;
+                            if (celcr.coinBack[b] > 0)
+                                isAdd = true;
+                            else if (celcr.coinBack[b] < 0)
+                                isAdd = false;
+                            else
+                                break;
+                            data.gtc.ChangeCoin(
+                                (ulong)Math.Abs(celcr.coinBack[b]),
+                                isAdd,
+                                (GameTokenCoin.Coin.CoinType)b,
+                                new()
+                                {
+                                    SaveTag = DataSave.ThisSaveTag,
+                                    CoinKey = Coin.CoinKey[b],
+                                    CoinChange = $"{(isAdd ? '+' : '-')}{Math.Abs(celcr.coinBack[b])}",
+                                    Note = "数据异常，代币回滚",//注意此行不要翻译，在别处有对其文本的判断
+                                },
+                                true
+                            );
+                        }
+                        if (celcr.moneyBack != 0)
+                        {
+                            MW.Core.Save.Money += celcr.moneyBack;
+                            DataSave.CoinExchangeLog_Insert(new()
+                            {
+                                SaveTag = DataSave.ThisSaveTag,
+                                CoinKey = Coin.CoinKey[0],
+                                CoinChange = "0",
+                                MoneyChange = $"{(celcr.moneyBack > 0 ? '+' : '-')}{Math.Abs(celcr.moneyBack)}",
+                                Note = "数据异常，金钱回滚",//注意此行不要翻译，在别处有对其文本的判断
+                            });
+                        }
+                        MessageBoxX.Show("检测到幸运游戏数据异常", "错误");//用于测试，后期将润色
+                    }
+                    else if (!celcr.haveData)
+                    {//数据库中是否存在数据
+                        /*gtc.coin.CoinBlack = 0;
+                        gtc.coin.CoinBlue = 0;
+                        gtc.coin.CoinGreen = 0;
+                        gtc.coin.CoinRed = 0;
+                        gtc.coin.CoinWhite = 0;*/
+                        ClearCoin("数据丢失，代币清除");
+                        MessageBoxX.Show("检测到幸运游戏数据丢失", "错误");//用于测试，后期将润色
+                    }
+                    if (rr.DbHashPass == false)
+                    {
+                        ClearCoin("数据篡改，代币清除");
+                        MessageBoxX.Show("检测到幸运游戏数据被篡改", "错误");//用于测试，后期将润色
+                    }
+                }
             }
-            //}catch(Exception ex) { ErrorHelper.ShowError(ex); }
+            catch (Exception ex) { ErrorHelper.ShowError(ex); }
             isLoaded = true;
         }
 
@@ -239,6 +284,7 @@ namespace VPet.Plugin.LuckyGame
 		}
 		public override void EndGame() {
             DataSave.Save(MW, data);
+            _timer.Dispose();
 			base.EndGame();
 		}
     }

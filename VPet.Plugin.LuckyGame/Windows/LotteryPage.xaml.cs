@@ -14,23 +14,54 @@ namespace VPet.Plugin.LuckyGame.Windows
 {
     public partial class LotteryPage : Window
     {
-        private readonly Data Data;
-        private ulong coinNum = 1; 
+        private readonly Data _data;
+        private ulong coinNum = 2; 
         public int CoinNumValue { set => coinNum = Convert.ToUInt64(value); get => Convert.ToInt32(coinNum); }
         internal LotteryPage(Data data)
         {
+            this._data = data;
             InitializeComponent();
             InitializeNumbers();
-            this.Data = data;
         }
 
         private void InitializeNumbers()
         {
-            
+            Reminder.IsChecked = _data.IsShowResult;
+            ShowResultAnimation();
         }
 
-		// 随机生成号码
-		private void RandomMainButton_Click(object sender, RoutedEventArgs e) {
+        public void ShowResultAnimation()
+        {
+            if (_data.lotteryResult.lotteryResults.Count > 0)
+            {
+                ReslutBorder.Visibility = Visibility.Visible;
+                NumberRoller.RollingCompleted += OnNumberRollingCompleted;
+                NumberRoller.MainMinValue = 0;
+                NumberRoller.MainMaxValue = 30;
+                NumberRoller.SpecialMinValue = 0;
+                NumberRoller.SpecialMaxValue = 9;
+                NumberRoller.SetFinalNumbers(_data.lotteryResult.lotteryResults.First().WinningNumber.MainNumber, _data.lotteryResult.lotteryResults.First().WinningNumber.DeputyNumber);
+                NumberRoller.StartRollingAnimation(5.0);
+            }
+        }
+
+        private void OnNumberRollingCompleted(object sender, EventArgs e)
+        {
+            var finalCoins = 0.0;
+            var resultString = "";
+            foreach (var item in _data.lotteryResult.lotteryResults) {
+                finalCoins += item.WinCoin;
+                item.WinCoinPay(_data.gtc);
+                resultString = item.WinningNumber.ToString();
+            }
+            MessageBoxX.Show("开奖结果已公布！\n本次中奖号码为：\n{1}\n您本次共获得代币数为：{0}".Translate(finalCoins, resultString), "提示".Translate());
+            _data.lotteryResult.lotteryResults.Clear();
+            ReslutBorder.Visibility = Visibility.Collapsed;
+            _data.IsShowing = false;
+        }
+
+        // 随机生成号码
+        private void RandomMainButton_Click(object sender, RoutedEventArgs e) {
 			Lottery.LotteryNumber numbers = Lottery.LotteryNumber.GetRandomNumber();
 			MainNumber1.Value = numbers.MainNumber[0];
 			MainNumber2.Value = numbers.MainNumber[1];
@@ -105,10 +136,10 @@ namespace VPet.Plugin.LuckyGame.Windows
             var buy = new Lottery.LotteryBuy
             {
                 lotteryNumber = userNumbers,
-                coinType = Data.gtc.coin.DefCoinType,
+                coinType = _data.gtc.coin.DefCoinType,
                 coin = coinNum
             };
-            var result = buy.Pay(Data.gtc);
+            var result = buy.Pay(_data.gtc);
             switch (result)
             {
                 case 3:
@@ -119,15 +150,8 @@ namespace VPet.Plugin.LuckyGame.Windows
                     MessageBoxX.Show("未知错误，请联系mod作者处理！", "错误".Translate());
                     return;
             }
-            Data.lottery.lotteryHave.Add(buy);
-            MessageBoxX.Show("购买彩票成功！\n您的下注代币数为{0}，您下注的号码为:{1}".Translate(coinNum,userNumbers.ToString()),"提示".Translate());
-        }
-
-		// 开始开奖
-		private void DrawButton_Click(object sender, RoutedEventArgs e)
-        {
-            //Data.enableStart = false;
-
+            _data.lottery.lotteryHave.Add(buy);
+            MessageBoxX.Show("购买彩票成功！\n您的下注代币数为{0}\n您下注的号码为:{1}".Translate(coinNum,userNumbers.ToString()),"提示".Translate());
         }
 
         #region 窗口拖动
@@ -172,5 +196,10 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             Close();
         }
-	}
+
+        private void Reminder_Click(object sender, RoutedEventArgs e)
+        {
+            _data.IsShowResult = Reminder.IsChecked.HasValue ? Reminder.IsChecked.Value : false;
+        }
+    }
 }
