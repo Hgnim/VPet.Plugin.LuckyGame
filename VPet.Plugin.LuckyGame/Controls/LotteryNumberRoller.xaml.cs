@@ -91,7 +91,7 @@ namespace VPet.Plugin.LuckyGame.Controls
         // 动画控制变量
         private DispatcherTimer _animationTimer;
         private int _currentFrame = 0;
-        private const int TotalFrames = 120; // 总帧数（4秒，30fps）
+        private int TotalFrames = 120; // 总帧数（4秒，30fps）
 
         // 每个数字的动画状态
         private class NumberAnimationState
@@ -190,7 +190,7 @@ namespace VPet.Plugin.LuckyGame.Controls
         {
             if (IsRolling || !_isInitialized)
                 return;
-
+            TotalFrames = (int)(durationSeconds * 30); // 根据持续时间调整总帧数
             IsRolling = true;
             _currentFrame = 0;
 
@@ -376,15 +376,7 @@ namespace VPet.Plugin.LuckyGame.Controls
             // 继续滚动
             int newValue = state.CurrentDisplayValue + speed;
 
-            // 处理数值边界（循环）
-            if (newValue > state.MaxValue)
-            {
-                newValue = state.MinValue + (newValue - state.MaxValue - 1);
-            }
-            else if (newValue < state.MinValue)
-            {
-                newValue = state.MaxValue - (state.MinValue - newValue - 1);
-            }
+            newValue = (newValue + 1) % state.MaxValue;
 
             state.CurrentDisplayValue = newValue;
             textBlock.Text = newValue.ToString();

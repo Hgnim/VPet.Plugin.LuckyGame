@@ -36,7 +36,7 @@ namespace VPet.Plugin.LuckyGame
         {
             _timer = new Timer((state) =>
             {
-                //if (DateTime.Now.Minute % 5 != 0) return;
+                if (DateTime.Now.Minute % 5 != 0) return;
                 if (data.IsShowing) return;
                 if (data.lottery != null)
                 {
@@ -54,7 +54,14 @@ namespace VPet.Plugin.LuckyGame
                         }
                         else if(data.IsShowResult)
                         {
-                            MW.Dispatcher.Invoke(() => MessageBoxX.Show("本期彩票开奖结果已出，请前往彩票界面查看！".Translate(), "提示".Translate()));
+                            MW.Dispatcher.Invoke(() => {
+                                var result = MessageBoxX.Show("本期彩票开奖结果已出，请前往彩票界面查看！".Translate(), "提示".Translate(),button:MessageBoxButton.YesNo);
+                                if (result == MessageBoxResult.Yes)
+                                {
+                                    LotteryMenu_Click(this, null);
+                                }
+                            });
+                            data.IsShowing = false;
                         }
                     }
                 }
