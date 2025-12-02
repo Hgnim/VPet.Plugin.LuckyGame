@@ -172,5 +172,7 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             Close();
         }
+
+		private void HelpButton_Click(object sender, RoutedEventArgs e) => LuckyGame.OpenHelpPage("lottery.html");
 	}
 }

@@ -63,53 +63,55 @@ namespace VPet.Plugin.LuckyGame
 						);
 					}
 				}
-                if (celcr.haveDiff) {//是否与数据库存在差异
-                    for(byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
-                        bool isAdd;
-                        if (celcr.coinBack[b] > 0)
-                            isAdd = true;
-                        else if (celcr.coinBack[b] < 0)
-                            isAdd = false;
-                        else
-                            break;
-                        data.gtc.ChangeCoin(
-                            (ulong)Math.Abs(celcr.coinBack[b]),
-                            isAdd,
-                            (GameTokenCoin.Coin.CoinType)b,
-                            new() {
-								SaveTag = DataSave.ThisSaveTag,
-								CoinKey = Coin.CoinKey[b],
-								CoinChange = $"{(isAdd ? '+' : '-')}{Math.Abs(celcr.coinBack[b])}",
-								Note = "数据异常，代币回滚",//注意此行不要翻译，在别处有对其文本的判断
-							},
-                            true
-                        );
+                if (rr.DbHashPass == false) {//如果哈希验证失败，则只执行插件数据清除
+                    ClearCoin("数据篡改，代币清除");
+                    MessageBoxX.Show("检测到幸运游戏数据被篡改", "错误");//用于测试，后期将润色
+                }
+                else {
+                    if (celcr.haveDiff) {//是否与数据库存在差异
+                        for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++) {
+                            bool isAdd;
+                            if (celcr.coinBack[b] > 0)
+                                isAdd = true;
+                            else if (celcr.coinBack[b] < 0)
+                                isAdd = false;
+                            else
+                                break;
+                            data.gtc.ChangeCoin(
+                                (ulong)Math.Abs(celcr.coinBack[b]),
+                                isAdd,
+                                (GameTokenCoin.Coin.CoinType)b,
+                                new() {
+                                    SaveTag = DataSave.ThisSaveTag,
+                                    CoinKey = Coin.CoinKey[b],
+                                    CoinChange = $"{(isAdd ? '+' : '-')}{Math.Abs(celcr.coinBack[b])}",
+                                    Note = "数据异常，代币回滚",//注意此行不要翻译，在别处有对其文本的判断
+                                },
+                                true
+                            );
+                        }
+                        if (celcr.moneyBack != 0) {
+                            MW.Core.Save.Money += celcr.moneyBack;
+                            DataSave.CoinExchangeLog_Insert(new() {
+                                SaveTag = DataSave.ThisSaveTag,
+                                CoinKey = Coin.CoinKey[0],
+                                CoinChange = "0",
+                                MoneyChange = $"{(celcr.moneyBack > 0 ? '+' : '-')}{Math.Abs(celcr.moneyBack)}",
+                                Note = "数据异常，金钱回滚",//注意此行不要翻译，在别处有对其文本的判断
+                            });
+                        }
+                        MessageBoxX.Show("检测到幸运游戏数据异常", "错误");//用于测试，后期将润色
                     }
-                    if (celcr.moneyBack != 0) {
-                        MW.Core.Save.Money += celcr.moneyBack;
-                        DataSave.CoinExchangeLog_Insert(new() {
-							SaveTag = DataSave.ThisSaveTag,
-							CoinKey = Coin.CoinKey[0],
-							CoinChange = "0",
-							MoneyChange = $"{(celcr.moneyBack>0 ? '+' : '-')}{Math.Abs(celcr.moneyBack)}",
-							Note = "数据异常，金钱回滚",//注意此行不要翻译，在别处有对其文本的判断
-						});
-					}
-					MessageBoxX.Show("检测到幸运游戏数据异常", "错误");//用于测试，后期将润色
-				}
-                else if (!celcr.haveData) {//数据库中是否存在数据
-                    /*gtc.coin.CoinBlack = 0;
-                    gtc.coin.CoinBlue = 0;
-                    gtc.coin.CoinGreen = 0;
-                    gtc.coin.CoinRed = 0;
-                    gtc.coin.CoinWhite = 0;*/
-                    ClearCoin("数据丢失，代币清除");
-					MessageBoxX.Show("检测到幸运游戏数据丢失", "错误");//用于测试，后期将润色
-				}
-                if (rr.DbHashPass == false) {
-					ClearCoin("数据篡改，代币清除");
-					MessageBoxX.Show("检测到幸运游戏数据被篡改", "错误");//用于测试，后期将润色
-				}
+                    else if (!celcr.haveData) {//数据库中是否存在数据
+                        /*gtc.coin.CoinBlack = 0;
+                        gtc.coin.CoinBlue = 0;
+                        gtc.coin.CoinGreen = 0;
+                        gtc.coin.CoinRed = 0;
+                        gtc.coin.CoinWhite = 0;*/
+                        ClearCoin("数据丢失，代币清除");
+                        MessageBoxX.Show("检测到幸运游戏数据丢失", "错误");//用于测试，后期将润色
+                    }
+                }
             }
             //}catch(Exception ex) { ErrorHelper.ShowError(ex); }
             isLoaded = true;
@@ -241,5 +243,17 @@ namespace VPet.Plugin.LuckyGame
             DataSave.Save(MW, data);
 			base.EndGame();
 		}
+
+        internal static void OpenHelpPage(string page) {
+            try {
+                /*Process.Start(
+                    new ProcessStartInfo($"{DataSave.pluginDirectory}/HelpPage/{page}") 
+                                                 { UseShellExecute = true }
+                    );*/
+                ExtensionFunction.StartURL($"{DataSave.pluginDirectory}/HelpPage/{page}");
+            } catch {
+                MessageBoxX.Show("无法打开帮助文件！".Translate(), "错误".Translate());
+            }
+        }
     }
 }

@@ -4,13 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Windows;
 using VPet.Plugin.LuckyGame.Core.Game;
 using VPet_Simulator.Windows.Interface;
 
 namespace VPet.Plugin.LuckyGame.Core {
 	internal struct DataSave {
+		/// <summary>
+		/// 插件所在目录
+		/// </summary>
+		internal static readonly string pluginDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 		const string mainKey = "LuckyGame";
 		/// <summary>
 		/// 保存数据
@@ -315,12 +321,12 @@ namespace VPet.Plugin.LuckyGame.Core {
 					foreach(byte n in lb.lotteryNumber.MainNumber) {
 						lotNum += $"{n},";
 					}
-					lotNum = lotNum[^1..];//去掉末尾间隔符
+					lotNum = lotNum[..^1];//去掉末尾间隔符
 					lotNum += ';';
 					foreach(byte n in lb.lotteryNumber.DeputyNumber) {
 						lotNum += $"{n},";
 					}
-					lotNum = lotNum[^1..];
+					lotNum = lotNum[..^1];
 					using (SQLiteCommand command = new(
 						@$"
 						INSERT INTO LotteryHave (LotteryNumber, Coin, CoinType) 
