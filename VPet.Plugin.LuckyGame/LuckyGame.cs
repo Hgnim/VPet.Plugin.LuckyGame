@@ -127,7 +127,7 @@ namespace VPet.Plugin.LuckyGame
                             }
                             MessageBoxX.Show("检测到幸运游戏数据异常", "错误");//用于测试，后期将润色
                         }
-                        else if (!celcr.haveData)
+                        else if (!celcr.haveData || !rr.HaveDbFile)
                         {//数据库中是否存在数据
                             /*gtc.coin.CoinBlack = 0;
                             gtc.coin.CoinBlue = 0;

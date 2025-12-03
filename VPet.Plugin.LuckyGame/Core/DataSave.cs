@@ -4,8 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using VPet.Plugin.LuckyGame.Core.Game;
@@ -30,7 +34,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			MW.GameSavesData[mainKey][(LinePutScript.gi64)"SaveTime"] = TimeData;
 			LotteryHave_Save([.. dat.lottery.lotteryHave]);
 
-			DatabaseHash_Save(MW);//保存哈希值，最后执行
+			DatabaseHash_Save(true);//保存哈希值，最后执行
 		}
 		internal class ReadResult {
 			/// <summary>
@@ -42,6 +46,10 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// 数据库哈希检查是否通过
 			/// </summary>
 			internal required bool? DbHashPass {  get; set; }
+			/// <summary>
+			/// 是否包含数据库相关文件
+			/// </summary>
+			internal required bool HaveDbFile { get; set; }
 		}
 		/// <summary>
 		/// 读取数据
@@ -63,10 +71,12 @@ namespace VPet.Plugin.LuckyGame.Core {
 				thisSaveTag = $"{MW.PrefixSave}:{birthday}";
 			}
 			bool? dbHashCheck = null;
-			if (!first) 
-				dbHashCheck = DatabaseHash_Check(MW.GameSavesData[mainKey][(LinePutScript.gstr)"hash"]);
-			else
-				EnsureDatabaseBackup();
+			bool haveDbFile = File.Exists(databaseBackupFileName) && File.Exists(databaseBackupHashFileName);
+			//if (first)//不对EnsureDatabaseBackup();函数进行判断，避免后续新增表的时候不执行
+			EnsureDatabaseBackup();
+			DatabaseHash_StreamInit();
+			if (!first && haveDbFile) 
+				dbHashCheck = DatabaseHash_Check();
 
 			gtcArg = new() { 
 				coins =new ulong[GameTokenCoin.Coin.CoinKey.Length],
@@ -93,12 +103,14 @@ namespace VPet.Plugin.LuckyGame.Core {
 			rr = new() {
 				IsFirst = first,
 				DbHashPass = dbHashCheck,
+				HaveDbFile = haveDbFile,
 			};
 
 			lllb = LotteryHave_Get();
 		}
 
 		const string databaseBackupFileName = "lgbk.db";
+		const string databaseBackupHashFileName = "lgbk-hash.bin";
 
 		const string databaseBackupConnectStr = $"Data Source={databaseBackupFileName};Version=3;";
 
@@ -125,7 +137,12 @@ namespace VPet.Plugin.LuckyGame.Core {
 								Coin TEXT NOT NULL,
 								CoinType INTEGER NOT NULL
 							);
-						"
+						"/*将哈希值存入数据库的方案，失败。暂时保留备用
+							CREATE TABLE IF NOT EXISTS Data_TextValue (
+								Id TEXT PRIMARY KEY,
+								Value TEXT
+							)  WITHOUT ROWID;
+						"*/
 					, sql))
 					{
 						command.ExecuteNonQuery();
@@ -137,22 +154,129 @@ namespace VPet.Plugin.LuckyGame.Core {
 				MessageBoxX.Show("数据初始化失败！\n{0}".Translate(ex.Message), "错误".Translate());
 			}
         }
+		/*将哈希值存入数据库的方案，失败。暂时保留备用
+		private struct DatabaseHash {
+			/// <summary>
+			/// 获取数据库的哈希值
+			/// </summary>
+			/// <returns></returns>
+			private static string GetDatabaseBackupHash() {
+				using (SHA256 sha256 = SHA256.Create()) {
+					using (FileStream stream = File.OpenRead(databaseBackupFileName)) {
+						byte[] hash = sha256.ComputeHash(stream);
+						return BitConverter.ToString(hash).Replace("-", "");
+					}
+				}
+			}
+			private static void WriteDb(string value = "ReadAndWrite") {
+				using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
+					sql.Open();
+					using (var transaction = sql.BeginTransaction()) {
+						using (SQLiteCommand command = new(
+						@$"
+						INSERT INTO Data_TextValue (Id, Value)
+							VALUES ('Hash', '{value}')
+						ON CONFLICT(Id) DO 
+							UPDATE SET Value = '{value}';
+						",
+						sql, transaction)) {
+							command.ExecuteNonQuery();
+						}
+						transaction.Commit();//等待其确保写入完成
+					}
+				}
+			}
+			private static string ReadDb() {
+				using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
+					sql.Open();
+
+					using (SQLiteCommand command = new(
+						@$"
+					SELECT Value FROM Data_TextValue
+						WHERE Id = 'Hash';
+					"
+					, sql)) {
+						using (SQLiteDataReader reader = command.ExecuteReader()) {
+							return reader.Read() 
+								? reader["Value"].ToString() 
+								: null;
+						}
+					}
+				}
+			}
+			internal static void DatabaseHash_Save() {
+				string hash;
+				WriteDb();//空写以写入可控的哈希值
+				Thread.Sleep(1000);
+				hash = GetDatabaseBackupHash();
+				Thread.Sleep(1000);
+				WriteDb(hash);
+			}
+			internal static bool DatabaseHash_Check() {
+				string readHash, hash;
+				readHash = ReadDb();
+				WriteDb();//空写以还原至获取哈希值时的状态
+				hash = GetDatabaseBackupHash();
+				MessageBox.Show(readHash + '\n' + hash);
+				return readHash == hash;
+			}
+		}
+		*/
 		/// <summary>
 		/// 获取数据库的哈希值
 		/// </summary>
 		/// <returns></returns>
-		private static string GetDatabaseBackupHash() {
-			using (SHA256 sha256 = SHA256.Create()) {
-				using (FileStream stream = File.OpenRead(databaseBackupFileName)) {
-					byte[] hash = sha256.ComputeHash(stream);
-					return BitConverter.ToString(hash).Replace("-", "");
-				}
+		private static byte[] GetDatabaseBackupHash() {
+			while (true) {
+				try {
+					using (SHA256 sha256 = SHA256.Create()) {
+						using (FileStream stream = new(databaseBackupFileName, FileMode.Open, FileAccess.Read)) {
+							return sha256.ComputeHash(stream);
+						}
+					}
+				} catch { }
 			}
 		}
-		private static void DatabaseHash_Save(IMainWindow MW) => 
-			MW.GameSavesData[mainKey][(LinePutScript.gstr)"hash"] = GetDatabaseBackupHash();
-		private static bool DatabaseHash_Check(string input) =>
-			input == GetDatabaseBackupHash();
+		static FileStream databaseHashFs;
+		private static void DatabaseHash_Save(bool lastSave = false) {
+			if (databaseHashFs == null || !databaseHashFs.CanRead || !databaseHashFs.CanWrite) {//如果流不可访问则重新初始化
+				databaseHashFs?.Dispose();
+				DatabaseHash_StreamInit();
+			}
+			databaseHashFs.Seek(0, SeekOrigin.Begin);//重置位置，避免出现不可读或不可写的报错
+			databaseHashFs.SetLength(0);//清理旧数据
+
+			using (BinaryWriter bw = new(databaseHashFs, Encoding.UTF8, true)) {
+				bw.Write(GetDatabaseBackupHash());
+				bw.Flush();
+			}
+			databaseHashFs.Flush(true);
+
+			if (lastSave) databaseHashFs.Close();
+		}
+		private static bool DatabaseHash_Check() {
+			if (databaseHashFs == null || !databaseHashFs.CanRead || !databaseHashFs.CanWrite) {//如果流不可访问则重新初始化
+				databaseHashFs?.Dispose();
+				DatabaseHash_StreamInit();
+			}
+			databaseHashFs.Seek(0, SeekOrigin.Begin);//重置位置，避免出现不可读或不可写的报错
+
+			if (databaseHashFs.Length == 0)//如果为空直接返回
+				return false;
+
+			using (BinaryReader br = new(databaseHashFs, Encoding.UTF8, true)) {
+				return br.ReadBytes((int)databaseHashFs.Length).SequenceEqual(GetDatabaseBackupHash());
+			}
+		}
+		private static void DatabaseHash_StreamInit() =>
+			databaseHashFs = new FileStream(
+		databaseBackupHashFileName,
+		FileMode.OpenOrCreate,
+		FileAccess.ReadWrite,
+		FileShare.ReadWrite | FileShare.Delete,//允许多次访问和删除
+		bufferSize: 4096,
+		FileOptions.RandomAccess//优化随机读写
+				);
 
 		/// <summary>
 		/// 统一时间数据获取
@@ -211,7 +335,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// <param name="cel">日志信息</param>
 		internal static async void CoinExchangeLog_Insert(CoinExchangeLog cel) => await Task.Run(() => {
 			if (cel.CoinKey != null && cel.CoinChange != null) {
-				if (!cel.DisThisTime)
+				if (!cel.DisThisTime) {
 					using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
 						sql.Open();
 						using (SQLiteCommand command = new(
@@ -223,6 +347,8 @@ namespace VPet.Plugin.LuckyGame.Core {
 							command.ExecuteNonQuery();
 						}
 					}
+					DatabaseHash_Save();
+				}
 			}
 			else throw new Exception("CoinExchangeLog_Insert函数中有关键参数为null");
 		});
