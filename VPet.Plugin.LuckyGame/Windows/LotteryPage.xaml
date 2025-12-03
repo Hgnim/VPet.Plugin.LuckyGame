@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         xmlns:pu="clr-namespace:Panuon.WPF.UI;assembly=Panuon.WPF.UI"
         xmlns:controls="clr-namespace:VPet.Plugin.LuckyGame.Controls"
-        MinHeight="500" MinWidth="700" MaxHeight="800" MaxWidth="800" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight"
+        MinHeight="500" MinWidth="700" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight"
         Background="Transparent" AllowsTransparency="True" WindowStyle="None"
         Title="{ll:Str 'Lottery'}" >
     <Window.Resources>
@@ -235,6 +235,7 @@
                     
                 </Grid>
             </Border>
+            
             <Border Grid.Row="1" Margin="20" Background="{DynamicResource DARKPrimary}"
                 CornerRadius="10" BorderBrush="{DynamicResource DARKPrimaryLighter}" 
                 BorderThickness="2" Padding="20" Name="ReslutBorder" Visibility="Collapsed">
@@ -244,16 +245,32 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width=".8*"/> 
+                    </Grid.ColumnDefinitions>
                     
                     <TextBlock Grid.Row="0" Text="{ll:Str 开奖中...}"
-                              FontSize="24" FontWeight="Bold"
+                              FontSize="24" FontWeight="Bold" Grid.ColumnSpan="2"
                               Foreground="{DynamicResource DARKPrimaryText}"
                               HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0"/>
-                    <controls:LotteryNumberRoller x:Name="NumberRoller" Margin="0,10" Grid.Column="0" Grid.Row="1"/>
+                    <controls:LotteryNumberRoller x:Name="NumberRoller" Margin="5,10" Grid.Column="0" Grid.Row="1"/>
                     <TextBlock Grid.Row="2" Text="{ll:Str 您的中奖金额为： 0 代币}" Name="PrizeText"
                           FontSize="24" FontWeight="Bold"
                           Foreground="Gold"
-                          HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0"/>
+                          HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" Grid.ColumnSpan="2"/>
+                    <pu:SeparatorX Grid.Column="1" Grid.Row="1" Orientation="Vertical" Margin="0,10" StrokeThickness="3" Stroke="Gold" StrokeDashArray="3"/>
+                    <ScrollViewer Grid.Row="1" Grid.Column="1" Margin="10">
+                        <StackPanel>
+                            <TextBlock Text="{ll:Str 购买记录：}" 
+                                 FontSize="18" FontWeight="Bold"
+                                 Foreground="{DynamicResource DARKPrimaryText}"
+                                 HorizontalAlignment="Center" Margin="10"/>
+                            <StackPanel x:Name="BuyHistoryPanel" Orientation="Vertical">
+
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Grid>
             </Border>
             <!-- 结果显示区域 -->

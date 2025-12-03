@@ -6,11 +6,14 @@
     HorizontalAlignment="Left" VerticalAlignment="Top"
     Opacity="0"
     >
+    <UserControl.Resources>
+        <ResourceDictionary Source="/VPet-Simulator.Windows.Interface;component/ResourceStyle.xaml" />
+    </UserControl.Resources>
     <Border x:Name="ToastBorder" 
         CornerRadius="8" 
-        Background="#000d41" 
+        Background="{DynamicResource DARKPrimaryDarker}" 
         Padding="16,10">
         <TextBlock x:Name="MsgText" Text="test"
-               Foreground="White" FontSize="14" TextWrapping="Wrap"/>
+               Foreground="{DynamicResource DARKPrimaryText}" FontSize="14" TextWrapping="Wrap"/>
     </Border>
 </UserControl>

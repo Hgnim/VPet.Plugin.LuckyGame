@@ -300,7 +300,8 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             void over() {
 				isSpinning = false;
-				SpinButton.IsEnabled = true;
+                AutoStartSwitch.IsEnabled = false;
+                SpinButton.IsEnabled = true;
 				SpinButton.Content = "开始旋转".Translate();
 				ResetButton.IsEnabled = true;
 				PredictionPointsText.IsEnabled = true;
@@ -391,6 +392,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             {
                 var resultIndex = CalculateResult(result.StopAngle);
                 var prize = LuckyWheel.WinCoin(resultIndex,result,gtc);
+                CoinResult.Visibility = Visibility.Visible;
                 if (prize > 0) {
                     CoinResult.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 249, 26));
 					CoinResult.Text = "赢得 {0} 代币！".Translate(prize);
@@ -413,6 +415,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             {
                 wheelTransform.Angle = 0;
                 isInitialised = true;
+                CoinResult.Visibility = Visibility.Collapsed;
             }
         }
 
