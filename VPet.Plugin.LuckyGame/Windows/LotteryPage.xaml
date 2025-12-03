@@ -315,6 +315,10 @@
                     </Style>
                 </Button.Style>
             </Button>
+            <controls:Toast x:Name="Toast" 
+                Panel.ZIndex="100" Margin="0,0,0,24"
+                HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                Grid.Row="1"/>
         </Grid>
     </Border>
 </Window>

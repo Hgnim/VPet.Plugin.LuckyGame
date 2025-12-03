@@ -1,0 +1,16 @@
+<UserControl 
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	x:Class="VPet.Plugin.LuckyGame.Controls.Toast"
+    Width="Auto" Height="Auto"
+    HorizontalAlignment="Left" VerticalAlignment="Top"
+    Opacity="0"
+    >
+    <Border x:Name="ToastBorder" 
+        CornerRadius="8" 
+        Background="#000d41" 
+        Padding="16,10">
+        <TextBlock x:Name="MsgText" Text="test"
+               Foreground="White" FontSize="14" TextWrapping="Wrap"/>
+    </Border>
+</UserControl>

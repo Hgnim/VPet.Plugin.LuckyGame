@@ -313,7 +313,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             if (isSpinning) return;
             if (!isInitialised)
             {
-                MessageBoxX.Show("转盘未初始化，请点击重置后继续".Translate(), "警告".Translate());
+				Toast.Show("转盘未初始化，请点击重置后继续".Translate());
                 return;
             }
 
@@ -342,15 +342,15 @@ namespace VPet.Plugin.LuckyGame.Windows
                 {
                     case 0:break;
                     case 1:
-                        MessageBoxX.Show("出现未知错误，无法进行抽奖".Translate(), "错误".Translate());
+						Toast.Show("出现未知错误，无法进行抽奖".Translate());
                         over();
                         return;
                     case 2:
-                        MessageBoxX.Show("押注代币为0，无法进行抽奖".Translate(), "错误".Translate());
+						Toast.Show("押注代币为0，无法进行抽奖".Translate());
 						over();
 						return;
                     case 3:
-                        MessageBoxX.Show("代币余额不足，无法进行抽奖".Translate(), "提示".Translate());
+						Toast.Show("代币余额不足，无法进行抽奖".Translate());
 						over();
 						return;
                 }

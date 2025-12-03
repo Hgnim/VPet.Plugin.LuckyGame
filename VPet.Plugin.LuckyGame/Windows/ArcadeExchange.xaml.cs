@@ -69,7 +69,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
             else
             {
-                ShowMessage("请输入有效的兑换金额", "warn");
+                Toast.Show("请输入有效的兑换金额".Translate());
             }
         }
 
@@ -82,8 +82,8 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
             else
             {
-                ShowMessage("请输入有效的回收金额", "warn");
-            }
+				Toast.Show("请输入有效的回收金额".Translate());
+			}
         }
 
         private void ProcessExchange(double amount, bool isAdd)
@@ -93,26 +93,21 @@ namespace VPet.Plugin.LuckyGame.Windows
             {
                 case 0:
                     UpdateDisplay();
-                    ShowMessage($"兑换成功！");
+                    Toast.Show("兑换成功！".Translate());
                     break;
                 case 1:
-                    ShowMessage("兑换失败，发生未知错误","error");
+                    Toast.Show("兑换失败，发生未知错误".Translate());
                     break;
                 case 2:
-                    ShowMessage("兑换失败，桌宠钱余额不足","warn");
-                    break;
+					Toast.Show("兑换失败，桌宠钱余额不足".Translate());
+					break;
                 case 3:
-                    ShowMessage("兑换失败，游戏币余额不足","warn");
-                    break;
+					Toast.Show("兑换失败，游戏币余额不足".Translate());
+					break;
                 case 4:
-                    ShowMessage("兑换失败，兑换金额必须非零","warn");
-                    break;
+					Toast.Show("兑换失败，兑换金额必须非零".Translate());
+					break;
             }
-        }
-
-        private void ShowMessage(string message,string title = "info")
-        {
-            MessageBoxX.Show(message.Translate(),title.Translate());
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)

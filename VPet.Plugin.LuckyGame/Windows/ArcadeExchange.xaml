@@ -6,6 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         xmlns:pu="clr-namespace:Panuon.WPF.UI;assembly=Panuon.WPF.UI"
+        xmlns:controls="clr-namespace:VPet.Plugin.LuckyGame.Controls"
         Height="Auto" Width="Auto" WindowStartupLocation="CenterScreen"
         WindowStyle="None" ResizeMode="NoResize"
         SizeToContent="WidthAndHeight"
@@ -170,7 +171,7 @@
                             </StackPanel>
                         </Grid>
                     </Border>
-                    
+
                     <!-- 代币选择 -->
                     <Border Grid.Column="1" Grid.Row="1" Background="#FF333333" 
                         BorderBrush="#FCB6FF" BorderThickness="3"
@@ -248,6 +249,10 @@
                     </Style>
                 </Button.Style>
             </Button>
+            <controls:Toast x:Name="Toast" 
+                            Panel.ZIndex="100" Margin="0,0,0,24"
+                            HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                            Grid.Row="1"/>
         </Grid>
     </Border>
 </Window>

@@ -152,15 +152,15 @@ namespace VPet.Plugin.LuckyGame.Windows
             switch (result)
             {
                 case 3:
-                    MessageBoxX.Show("代币不足，无法购买彩票！", "错误".Translate());
+					Toast.Show("代币不足，无法购买彩票！");
                     return;
                 case 2:
                 case 1:
-                    MessageBoxX.Show("未知错误，请联系mod作者处理！", "错误".Translate());
+					Toast.Show("未知错误，请联系mod作者处理！");
                     return;
             }
             _data.lottery.lotteryHave.Add(buy);
-            MessageBoxX.Show("购买彩票成功！\n您的下注代币数为{0}\n您下注的号码为:{1}".Translate(coinNum,userNumbers.ToString()),"提示".Translate());
+            Toast.Show("购买彩票成功！\n您的下注代币数为{0}\n您下注的号码为:{1}".Translate(coinNum,userNumbers.ToString()));
             if (AutoClearByBuy.IsChecked == true) ClearAllNumbers_Click(null, null);
         }
         private void RandomBuyButton_Click(object sender, RoutedEventArgs e) {
