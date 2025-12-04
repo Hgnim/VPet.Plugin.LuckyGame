@@ -95,7 +95,7 @@ namespace VPet.Plugin.LuckyGame.Controls
         private int _currentFrame = 0;
         private int TotalFrames = 120; // 总帧数（4秒，30fps）
         private int _currentStopIndex = 0; // 当前要停止的数字索引
-        private const double StopIntervalSeconds = 1.5; // 停止间隔（秒）
+        private const double StopIntervalSeconds = 2; // 停止间隔（秒）
         private const int StopIntervalFrames = 15; // 停止间隔（帧数，0.5秒 * 30fps）
 
         // 每个数字的动画状态

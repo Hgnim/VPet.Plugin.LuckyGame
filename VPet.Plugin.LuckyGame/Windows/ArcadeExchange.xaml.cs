@@ -1,6 +1,7 @@
 ﻿using LinePutScript.Localization.WPF;
 using Panuon.WPF.UI;
 using System;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,19 +20,21 @@ namespace VPet.Plugin.LuckyGame.Windows
         private Point startPoint;
         private bool isDragging = false;
         private bool NeedUpdateUI = false;
+        private Timer UIUpdadteTimer;
         internal ArcadeExchange(IMainWindow mainWindow, GameTokenCoin gtc)
         {
             MainWindow = mainWindow;
-            MainWindow.Main.EventTimer.Elapsed += (s, e) =>
+            UIUpdadteTimer = new Timer(async(e) =>
             {
-                if(!NeedUpdateUI) 
+                if (!NeedUpdateUI)
                     return;
-                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                await Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
                     UpdateDisplay();
                 }));
                 NeedUpdateUI = false;
-            };
+            }, null, 0, 100);
+           
             TokenCoin = gtc;
             gtc.coin.OnCoinChange += (type, amount, rate, fee) =>
             {
@@ -89,7 +92,7 @@ namespace VPet.Plugin.LuckyGame.Windows
             }
             else
             {
-				Toast.Show("请输入有效的回收金额".Translate());
+                Toast.Show("请输入有效的回收金额".Translate());
 			}
         }
 
@@ -99,20 +102,20 @@ namespace VPet.Plugin.LuckyGame.Windows
             switch(result)
             {
                 case 0:
-                    UpdateDisplay();
+                    NeedUpdateUI = true;
                     Toast.Show("兑换成功！".Translate());
                     break;
                 case 1:
                     Toast.Show("兑换失败，发生未知错误".Translate());
                     break;
                 case 2:
-					Toast.Show("兑换失败，桌宠钱余额不足".Translate());
+                    Toast.Show("兑换失败，桌宠钱余额不足".Translate());
 					break;
                 case 3:
-					Toast.Show("兑换失败，游戏币余额不足".Translate());
+                    Toast.Show("兑换失败，游戏币余额不足".Translate());
 					break;
                 case 4:
-					Toast.Show("兑换失败，兑换金额必须非零".Translate());
+                    Toast.Show("兑换失败，兑换金额必须非零".Translate());
 					break;
             }
         }
@@ -215,6 +218,7 @@ namespace VPet.Plugin.LuckyGame.Windows
         }
 
 		private void CoinTypeSelect_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+            if(TokenCoin.coin.DefCoinType == (GameTokenCoin.Coin.CoinType)CoinTypeSelect.SelectedIndex) return;
             TokenCoin.coin.DefCoinType = (GameTokenCoin.Coin.CoinType)CoinTypeSelect.SelectedIndex;
             {
                 uint cer = TokenCoin.GetCoinExchangeRate();

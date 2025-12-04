@@ -24,7 +24,8 @@ namespace VPet.Plugin.LuckyGame.Windows
         private readonly IMainWindow MW;
         private ulong coinNum = 2; 
         public int CoinNumValue { set => coinNum = Convert.ToUInt64(value); get => Convert.ToInt32(coinNum); }
-        private List<ulong> resluts = new();
+        private List<ulong> resluts = [];
+        private List<TextBlock> PurchaseHistory = [];
         internal LotteryPage(Data data,IMainWindow MW)
         {
             this._data = data;
@@ -52,9 +53,9 @@ namespace VPet.Plugin.LuckyGame.Windows
                 NumberRoller.SpecialMaxValue = 9;
                 resluts = Lottery.ResultList2WinCoinDetail(_data.lotteryResult.lotteryResults);
                 NumberRoller.SetFinalNumbers(_data.lotteryResult.lotteryResults.First().WinningNumber.MainNumber, _data.lotteryResult.lotteryResults.First().WinningNumber.DeputyNumber);
-                foreach(var item in _data.lotteryResult.lotteryResults)
+                foreach(var item in PurchaseHistory)
                 {
-                    BuyHistoryPanel.Children.Add(FormatPurchaseBlock(item.BuyInfo));
+                    BuyHistoryPanel.Children.Add(item);
                 }
                 NumberRoller.StartRollingAnimation(2.0);
             }
@@ -94,6 +95,7 @@ namespace VPet.Plugin.LuckyGame.Windows
 						}
 					);
 			_data.lotteryResult.lotteryResults.Clear();
+            PurchaseHistory.Clear();
             ReslutBorder.Visibility = Visibility.Collapsed;
             _data.IsShowing = false;
         }
@@ -189,6 +191,7 @@ namespace VPet.Plugin.LuckyGame.Windows
                     return;
             }
             _data.lottery.lotteryHave.Add(buy);
+            PurchaseHistory.Add(FormatPurchaseBlock(buy));
             Toast.Show("购买彩票成功！\n您的下注代币数为{0}\n您下注的号码为:{1}".Translate(coinNum,userNumbers.ToString()));
             if (AutoClearByBuy.IsChecked == true) ClearAllNumbers_Click(null, null);
         }
@@ -250,14 +253,15 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             TextBlock textBlock = new TextBlock();
             textBlock.TextWrapping = TextWrapping.Wrap;
-            textBlock.Inlines.Add(new Run("号码: "));
-            textBlock.Inlines.Add(new Run(lotteryBuy.lotteryNumber.ToString()) { Foreground = Brushes.LightBlue });
+            textBlock.TextAlignment = TextAlignment.Center;
+            textBlock.Inlines.Add(new Run("号码: ".Translate()) { Foreground = Brushes.White , FontWeight = FontWeights.Bold ,FontSize = 12 });
+            textBlock.Inlines.Add(new Run(lotteryBuy.lotteryNumber.ToString()) { Foreground = Brushes.LightBlue, FontSize = 12 });
             textBlock.Inlines.Add(new LineBreak());
-            textBlock.Inlines.Add(new Run("下注代币数: "));
-            textBlock.Inlines.Add(new Run(lotteryBuy.coin.ToString()) { Foreground = Brushes.LightGreen });
+            textBlock.Inlines.Add(new Run("下注代币数: ".Translate()) { Foreground = Brushes.White, FontWeight = FontWeights.Bold, FontSize = 12 });
+            textBlock.Inlines.Add(new Run(lotteryBuy.coin.ToString()) { Foreground = Brushes.LightGreen , FontSize = 12 });
             textBlock.Inlines.Add(new LineBreak());
-            textBlock.Inlines.Add(new Run("代币类型: "));
-            textBlock.Inlines.Add(new Run(lotteryBuy.coinType.ToString()) { Foreground = Brushes.LightYellow });
+            textBlock.Inlines.Add(new Run("代币类型: ".Translate()) { Foreground = Brushes.White, FontWeight = FontWeights.Bold, FontSize = 12 });
+            textBlock.Inlines.Add(new Run(lotteryBuy.coinType.ToString()) { Foreground = Brushes.LightYellow , FontSize = 12 });
             return textBlock;
         }
 	}
