@@ -5,8 +5,10 @@ clicktext:|Working#luckyGame_sepak_placeHighWin:|Text#哇，中了！:|Tag#all:|
 clicktext:|Working#luckyGame_sepak_placeMidWin:|Text#中奖力！:|Tag#all:|
 
 clicktext:|Working#luckyGame_sepak_placeLowWin:|Text#中了，但不多。:|Tag#all:|
+clicktext:|Working#luckyGame_sepak_placeLowWin:|Text#至少保本了。:|Tag#all:|
 
 clicktext:|Working#luckyGame_sepak_placeVeryLowWin:|Text#中了，早知道多押点了。:|Tag#all:|
+clicktext:|Working#luckyGame_sepak_placeVeryLowWin:|Text#勉强保本。:|Tag#all:|
 
 
 clicktext:|Working#luckyGame_sepak_placeVeryHighLose:|Text#不！！！！！！！！！！！！！:|Tag#all:|

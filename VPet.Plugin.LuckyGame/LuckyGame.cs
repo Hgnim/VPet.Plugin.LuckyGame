@@ -191,13 +191,13 @@ namespace VPet.Plugin.LuckyGame
             {
                 fortuneWindow.Close();
                 fortuneWindow = null;
-                fortuneWindow = new Fortune(data.gtc);
+                    fortuneWindow = new Fortune(data.gtc, data.speak, MW);
                 fortuneWindow.Show();
             }
             else
             {
-                fortuneWindow = new Fortune(data.gtc);
-                fortuneWindow.Show();
+                fortuneWindow = new Fortune(data.gtc, data.speak, MW);
+					fortuneWindow.Show();
             }
             }
             else
@@ -216,12 +216,12 @@ namespace VPet.Plugin.LuckyGame
             {
                 lotteryWindow.Close();
                 lotteryWindow = null;
-                lotteryWindow = new LotteryPage(data);
+                lotteryWindow = new LotteryPage(data, MW);
                 lotteryWindow.Show();
             }
             else
             {
-                lotteryWindow = new LotteryPage(data);
+                lotteryWindow = new LotteryPage(data, MW);
                 lotteryWindow.Show();
             }
             }

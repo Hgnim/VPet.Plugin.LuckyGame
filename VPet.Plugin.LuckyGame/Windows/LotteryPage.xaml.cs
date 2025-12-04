@@ -2,6 +2,7 @@
 using Panuon.WPF.UI;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,18 +13,22 @@ using System.Windows.Media;
 using VPet.Plugin.LuckyGame.Controls;
 using VPet.Plugin.LuckyGame.Core;
 using VPet.Plugin.LuckyGame.Core.Game;
+using VPet_Simulator.Windows.Interface;
+using Point = System.Windows.Point;
 
 namespace VPet.Plugin.LuckyGame.Windows
 {
     public partial class LotteryPage : Window
     {
         private readonly Data _data;
+        private readonly IMainWindow MW;
         private ulong coinNum = 2; 
         public int CoinNumValue { set => coinNum = Convert.ToUInt64(value); get => Convert.ToInt32(coinNum); }
         private List<ulong> resluts = new();
-        internal LotteryPage(Data data)
+        internal LotteryPage(Data data,IMainWindow MW)
         {
             this._data = data;
+            this.MW = MW;
             InitializeComponent();
             InitializeNumbers();
         }
@@ -63,18 +68,32 @@ namespace VPet.Plugin.LuckyGame.Windows
         private async void OnNumberRollingCompleted(object sender, EventArgs e)
         {
             var finalCoins = 0.0;
+            ulong useCoin = 0;
+            GameTokenCoin.Coin.CoinType? ct = null;
             var resultString = "";
             await Task.Run(() =>
             {
                 foreach (var item in _data.lotteryResult.lotteryResults)
                 {
                     finalCoins += item.WinCoin;
+                    useCoin += item.BuyInfo.coin;
+                    ct = item.BuyInfo.coinType;
                     item.WinCoinPay(_data.gtc);
                     resultString = item.WinningNumber.ToString();
                 }
             });
             MessageBoxX.Show("开奖结果已公布！\n本次中奖号码为：\n{1}\n您本次共获得代币数为：{0}".Translate(finalCoins, resultString), "提示".Translate());
-            _data.lotteryResult.lotteryResults.Clear();
+			_data.speak.DoSpeak(MW, _data.gtc,
+						new() {
+							Value = useCoin,
+							CoinType = ct ?? _data.gtc.coin.DefCoinType,
+						},
+						new GameTokenCoin.CoinGroup() {
+							Value = (ulong)finalCoins,
+							CoinType = ct ?? _data.gtc.coin.DefCoinType,
+						}
+					);
+			_data.lotteryResult.lotteryResults.Clear();
             ReslutBorder.Visibility = Visibility.Collapsed;
             _data.IsShowing = false;
         }

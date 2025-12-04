@@ -10,6 +10,8 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using VPet.Plugin.LuckyGame.Core;
 using VPet.Plugin.LuckyGame.Core.Game;
+using VPet.Plugin.LuckyGame.Core.Tool;
+using VPet_Simulator.Windows.Interface;
 
 namespace VPet.Plugin.LuckyGame.Windows
 {
@@ -24,6 +26,8 @@ namespace VPet.Plugin.LuckyGame.Windows
         private ushort place = 1, allPlace = 6;
         private bool UIInitialized = false;
         private readonly GameTokenCoin gtc;
+        private readonly Speak speak;
+        private readonly IMainWindow MW;
         // 转盘配置
         private int sectorCount => prizes.Count;
 
@@ -44,9 +48,11 @@ namespace VPet.Plugin.LuckyGame.Windows
         public int SectorCount { get => Convert.ToInt32(allPlace); private set { allPlace = Convert.ToUInt16(value); } } 
         public int PredictionPoints { get => Convert.ToInt32(place); private set { place = Convert.ToUInt16(value); } }
 
-        internal Fortune(GameTokenCoin gtc)
+        internal Fortune(GameTokenCoin gtc,Speak speak,IMainWindow MW)
         {
             this.gtc = gtc;
+            this.speak = speak;
+            this.MW = MW;
             InitializeComponent();
             UIInitialized = true;
             InitializeGame();
@@ -300,7 +306,6 @@ namespace VPet.Plugin.LuckyGame.Windows
         {
             void over() {
 				isSpinning = false;
-                AutoStartSwitch.IsEnabled = false;
                 SpinButton.IsEnabled = true;
 				SpinButton.Content = "开始旋转".Translate();
 				ResetButton.IsEnabled = true;
@@ -401,9 +406,20 @@ namespace VPet.Plugin.LuckyGame.Windows
                     CoinResult.Foreground = new SolidColorBrush(Color.FromArgb(255, 182, 0, 0));
 					CoinResult.Text = "输掉了！".Translate();
 				}
+                speak.DoSpeak(MW, gtc,
+                        new() {
+                            Value = result.BuyInfo.Coin,
+                            CoinType = result.BuyInfo.CoinType ?? gtc.coin.DefCoinType,
+                        },
+                        new GameTokenCoin.CoinGroup() {
+                            Value = prize,
+                            CoinType = result.BuyInfo.CoinType ?? gtc.coin.DefCoinType,
+                        }
+                    );
 			}
             catch (Exception ex)
             {
+                ErrorHelper.ShowError(ex);
                 MessageBox.Show("转盘旋转出错：{0}".Translate(ex.Message), "错误".Translate(),
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }

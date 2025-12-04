@@ -13,7 +13,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 			/// <param name="value">代币数量</param>
 			/// <param name="rate">该代币汇率</param>
 			/// <param name="fee">该代币兑回手续费</param>
-			internal delegate void CoinInfo(CoinType type,ulong value,uint rate, double fee);
+			internal delegate void CoinInfo(CoinType type, ulong value, uint rate, double fee);
 			/// <summary>
 			/// 代币更改时触发
 			/// </summary>
@@ -186,12 +186,12 @@ namespace VPet.Plugin.LuckyGame.Core {
 					ef_coinWhite = efCoin[(int)CoinType.coinWhite];
 				}
 			}
-			
+
 			private CoinType defCoinType;
 			/// <summary>
 			/// 默认（或当前）使用的代币类型
 			/// </summary>
-			internal CoinType DefCoinType{
+			internal CoinType DefCoinType {
 				set {
 					defCoinType = value;
 					OnDefCoinTypeChange?.Invoke(DefCoinType);
@@ -200,6 +200,19 @@ namespace VPet.Plugin.LuckyGame.Core {
 			}
 		}
 		internal Coin coin;
+		/// <summary>
+		/// 表示一组代币，用于传递
+		/// </summary>
+		internal class CoinGroup {
+			/// <summary>
+			/// 代币类型
+			/// </summary>
+			internal required Coin.CoinType CoinType { get; set; }
+			/// <summary>
+			/// 代币数
+			/// </summary>
+			internal required ulong Value { get; set; }
+		}
 		/// <summary>
 		/// 代币兑换<br/>
 		/// 在原基础上更变代币的数量，并对桌宠钱进行相应的增减
