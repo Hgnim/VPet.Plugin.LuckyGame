@@ -92,7 +92,7 @@ namespace VPet.Plugin.LuckyGame
                     {//如果哈希验证失败，则只执行插件数据清除
 						DataSave.DatabaseBackupClearAllData();//数据库被篡改，数据库内容已不可信，清空
 						ClearCoin("数据篡改，代币清除");
-                        MessageBoxX.Show("财富是靠自己争取的，而非篡改。", "LuckyGame".Translate());//检测到幸运游戏数据被篡改
+                        MessageBoxX.Show("财富是靠自己争取的，而非篡改。".Translate(), "LuckyGame".Translate());//检测到幸运游戏数据被篡改
 					}
                     else
                     {
@@ -133,7 +133,7 @@ namespace VPet.Plugin.LuckyGame
                                     Note = "数据异常，金钱回滚",//注意此行不要翻译，在别处有对其文本的判断
                                 });
                             }
-                            MessageBoxX.Show("有些事是注定发生的，并不能通过回档而回到过去。", "LuckyGame".Translate());//检测到幸运游戏数据异常
+                            MessageBoxX.Show("有些事是注定发生的，并不能通过回档而回到过去。".Translate(), "LuckyGame".Translate());//检测到幸运游戏数据异常
 						}
                         else if (!celcr.haveData || !rr.HaveDbFile)
                         {//数据库中是否存在数据

@@ -88,7 +88,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
             {
                 string mainNumStr = string.Join(" ", MainNumber);
 				string deputyNumStr = string.Join(" ", DeputyNumber);
-				return $"主号码: [{mainNumStr}] 副号码: [{deputyNumStr}]".Translate();
+				return "主号码: [{0}] 副号码: [{1}]".Translate(mainNumStr, deputyNumStr);
             }
 		}
 		/// <summary>

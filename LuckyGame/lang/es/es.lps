@@ -23,7 +23,7 @@ Lottery#Lottery:|
 预测点数：#Prediction points:|
 开始旋转#Start Spin:|
 重置#Reset:|
-转盘未初始化，请点击重置后继续#Wheel not initialized, please click reset to continue:|
+转盘未初始化，请点击重置后继续#Wheel is not initialized, please click reset to continue:|
 旋转中...#Spinning...:|
 出现未知错误，无法进行抽奖#An unknown error occurred, unable to draw:|
 押注代币为0，无法进行抽奖#Bet tokens are 0, unable to draw:|
@@ -76,15 +76,15 @@ Ris彩票#Ris Lottery:|
 主号码（0-30）#Main numbers (0-30):|
 副号码（0-9）#Secondary numbers (0-9):|
 押币数（最少2代币）：#Bet tokens (minimum 2 tokens):|
-主号码机器选号#Machine Select:|
-副号码机器选号#Machine Select:|
-清空主号码#Clear:|
-清空副号码#Clear:|
-机器选号#Machine Select:|
+主号码机器选号#Main numbers machine selection:|
+副号码机器选号#Secondary numbers machine selection:|
+清空主号码#Clear main numbers:|
+清空副号码#Clear secondary numbers:|
+机器选号#Machine selection:|
 清空所有#Clear all:|
-机器选号并购买#Machine Select and Purchase:|
-购买彩票#Purchase:|
-购买后自动清空号码#Automatically clear:|
+机器选号并购买#Machine selection and purchase:|
+购买彩票#Purchase lottery ticket:|
+购买后自动清空号码#Automatically clear numbers after purchase:|
 开奖提醒#Draw reminder:|
 您的中奖金额为： {0} 代币#Your winning amount is: {0} tokens:|
 开奖结果已公布！\n本次中奖号码为：\n{1}\n您本次共获得代币数为：{0}#The draw results have been announced!\nThe winning numbers this time are:\n{1}\nYou have won a total of {0} tokens this time:|
