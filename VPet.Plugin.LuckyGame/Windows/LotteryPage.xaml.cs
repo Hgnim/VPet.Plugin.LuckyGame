@@ -96,6 +96,9 @@ namespace VPet.Plugin.LuckyGame.Windows
 					);
 			_data.lotteryResult.lotteryResults.Clear();
             PurchaseHistory.Clear();
+            BuyHistoryPanel.Children.Clear();
+            NumberRoller.RollingCompleted -= OnNumberRollingCompleted;
+            NumberRoller.NumberStopped -= OnNumberStopped;
             ReslutBorder.Visibility = Visibility.Collapsed;
             _data.IsShowing = false;
         }

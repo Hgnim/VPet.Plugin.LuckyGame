@@ -145,7 +145,7 @@ namespace VPet.Plugin.LuckyGame
                             if (!rr.HaveDbFile)
                                 DataSave.DatabaseBackupClearAllData();//如果数据库文件有丢失情况，则清除所有数据库
                             ClearCoin("数据丢失，代币清除");
-                            MessageBoxX.Show("你的代币资产随着你的操作而被丢弃。", "LuckyGame".Translate());//检测到幸运游戏数据丢失
+                            MessageBoxX.Show("你的代币资产随着你的操作而被丢弃。".Translate(), "LuckyGame".Translate());//检测到幸运游戏数据丢失
 						}
                     }
                 }
