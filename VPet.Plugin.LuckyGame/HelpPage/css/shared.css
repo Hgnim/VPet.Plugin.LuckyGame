@@ -1,8 +1,190 @@
 ﻿body {
     background-color: #656565;
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #222;
 }
 
+/* iframe 顶部导航占位 */
 #nav {
     width: 100%;
     height: 48px;
+    border: 0;
 }
+
+/* 页面容器 */
+.page {
+    max-width: 980px;
+    margin: 18px auto;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+/* 卡片样式 */
+.card {
+    background: linear-gradient(180deg, #f6f8fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+.card-header {
+    padding: 14px 18px;
+    background: linear-gradient(90deg,#4a90e2,#6fb3ff);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 18px;
+}
+.card-body {
+    padding: 18px;
+    background: #fff;
+    color: #333;
+}
+
+/* markdown 内容内部样式，改善可读性 */
+#markdown {
+    line-height: 1.7;
+    color: #333;
+}
+#markdown h1, #markdown h2, #markdown h3 {
+    margin-top: 1.2rem;
+    margin-bottom: 0.6rem;
+}
+#markdown p { margin-bottom: 0.8rem; }
+#markdown pre {
+    background: #2d2d2d;
+    color: #f8f8f2;
+    padding: 12px;
+    border-radius: 6px;
+    overflow: auto;
+}
+#markdown code { background: rgba(27,31,35,0.05); padding: 2px 6px; border-radius: 6px; }
+
+/* 导航（在 iframe 内生效） */
+nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 48px;
+    padding: 0 12px;
+    box-sizing: border-box;
+}
+nav a {
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.06);
+    font-weight: 500;
+}
+nav a:hover { background: rgba(255,255,255,0.12); }
+
+/* 响应式小屏 */
+@media (max-width: 640px) {
+    .page { padding: 10px; }
+    .card-header { font-size: 16px; padding: 12px; }
+    .card-body { padding: 12px; }
+}
+
+/* 更完整的 Markdown 样式 */
+#markdown h1 { font-size: 1.8rem; border-bottom: 1px solid rgba(0,0,0,0.06); padding-bottom: 0.3rem; }
+#markdown h2 { font-size: 1.5rem; }
+#markdown h3 { font-size: 1.25rem; }
+#markdown h4 { font-size: 1.05rem; }
+#markdown h5, #markdown h6 { font-size: 0.95rem; color: #555; }
+
+#markdown hr { border: none; border-top: 1px solid rgba(0,0,0,0.06); margin: 1.6rem 0; }
+
+#markdown blockquote {
+    border-left: 4px solid rgba(74,144,226,0.9);
+    margin: 0 0 1rem 0;
+    padding: 8px 12px;
+    background: linear-gradient(90deg, rgba(74,144,226,0.06), transparent);
+    color: #333;
+    border-radius: 6px;
+}
+
+#markdown ul, #markdown ol {
+    padding-left: 1.4rem;
+    margin-bottom: 0.8rem;
+}
+#markdown li { margin: 0.35rem 0; }
+
+/* 任务列表样式（GitHub 风格复选框视觉） */
+#markdown input[type="checkbox"] { transform: scale(1.05); margin-right: 8px; }
+#markdown li.task-list-item { list-style: none; }
+
+/* 表格样式 */
+#markdown table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+#markdown table th, #markdown table td {
+    border: 1px solid rgba(0,0,0,0.06);
+    padding: 8px 10px;
+    text-align: left;
+}
+#markdown table thead th { background: #f5f7fa; }
+#markdown table tbody tr:nth-child(odd) { background: rgba(0,0,0,0.02); }
+
+/* 图片自适应并居中 */
+#markdown img { max-width: 100%; height: auto; display: block; margin: 0.6rem auto; border-radius: 6px; }
+
+/* 链接样式 */
+#markdown a { color: #1a73e8; text-decoration: none; }
+#markdown a:hover { text-decoration: underline; }
+
+/* 行内代码 */
+#markdown code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace; font-size: 0.95em; }
+
+/* 高亮代码块（带行号占位） */
+#markdown pre {
+    background: #0b1220;
+    color: #d6deeb;
+    padding: 12px;
+    border-radius: 8px;
+    overflow: auto;
+}
+#markdown pre code { background: transparent; color: inherit; padding: 0; border-radius: 0; }
+
+/* 可选：让代码块内长行水平滚动并避免换行 */
+#markdown pre code { white-space: pre; }
+
+/* 小屏优化：在窄屏时调小字体和间距 */
+@media (max-width: 420px) {
+    #markdown { font-size: 0.95rem; }
+    #markdown h1 { font-size: 1.4rem; }
+}
+
+/* 行号样式和代码块行号容器 */
+.code-with-line-numbers { display: flex; align-items: flex-start; gap: 12px; }
+.code-with-line-numbers .gutter {
+    background: linear-gradient(180deg, rgba(11,18,32,0.04), rgba(11,18,32,0.02));
+    padding: 8px 6px;
+    border-radius: 6px 0 0 6px;
+    text-align: right;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+.code-with-line-numbers .gutter .line {
+    display: block;
+    padding: 0 8px;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.85em;
+    line-height: 1.5em;
+}
+.code-with-line-numbers pre {
+    margin: 0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    background: #0b1220;
+    overflow: auto;
+    flex: 1 1 auto;
+}
+.code-with-line-numbers pre code { white-space: pre; }
+
+/* 保持在窄屏上也可读，行号大小稍微降低 */
+@media (max-width: 480px) {
+    .code-with-line-numbers .gutter .line { font-size: 0.8em; padding-right: 6px; }
+}
+

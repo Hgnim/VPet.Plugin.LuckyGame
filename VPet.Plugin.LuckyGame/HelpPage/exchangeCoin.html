@@ -1,8 +1,9 @@
 ﻿<!DOCTYPE html>
 
-<html lang="cn">
+<html lang="zh-CN">
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>兑换机制</title>
     <script src="js/md/exchangeCoin.js.md"></script>
     <script src="local_modules/marked/marked.umd.js"></script>
@@ -10,8 +11,15 @@
     <link rel="stylesheet" href="css/shared.css" type="text/css">
 </head>
 <body>
-    <iframe id="nav" src="nav.html" frameborder="0"></iframe>
-    <div id="markdown"></div>
+    <iframe id="nav" src="nav.html" frameborder="0" title="导航"></iframe>
+    <main class="page">
+        <div class="card">
+            <div class="card-header">兑换机制</div>
+            <div class="card-body">
+                <div id="markdown"></div>
+            </div>
+        </div>
+    </main>
     <script>
         markdownLoad(markdownText);
     </script>
