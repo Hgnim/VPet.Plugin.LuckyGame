@@ -280,14 +280,21 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 								if (b2 < 6) 
 									if (mainWinLoc[b2]) winN++;
 							}
-							winCoDet_doub[b] = Math.Pow(winN, item.coin);
+							if (mainWinLoc[b])
+								winCoDet_doub[b] =
+									b - 1 >= 0
+									? winCoDet_doub[b - 1]
+									: 0
+									+
+									item.coin * Math.Pow(8, winN);
 						}
 						else {
 							for(byte b2 = 0; b2 < b-6+1; b2++) {
 								if (b2 < 2)
 									if (deputyWinLoc[b2]) winN++;
 							}
-							winCoDet_doub[b] = winCoDet_doub[6-1] + Math.Pow(1.5, winN);
+							if (deputyWinLoc[b - 6])
+								winCoDet_doub[b] = winCoDet_doub[b - 1] + item.coin * winN;
 							if (b == 8 - 1 && winN == 0) winCoDet_doub[b] = 0;//如果副号码没有赢，则主号码赢得的不算数
 						}
 					}

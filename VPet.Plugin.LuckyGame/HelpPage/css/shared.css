@@ -28,7 +28,7 @@
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.25);
     overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.06);
+    border: 1px solid #696969;
 }
 .card-header {
     padding: 14px 18px;
@@ -39,7 +39,7 @@
 }
 .card-body {
     padding: 18px;
-    background: #fff;
+    background: #c5c5c5;
     color: #333;
 }
 
