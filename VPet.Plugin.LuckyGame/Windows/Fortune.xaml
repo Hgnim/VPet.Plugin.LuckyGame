@@ -232,7 +232,7 @@
                     </Viewbox>
                     <TextBlock x:Name="CoinResult"
                             Foreground="{DynamicResource DARKPrimaryText}" HorizontalAlignment="Center"
-                            FontSize="16" VerticalAlignment="Bottom" Height="auto" Margin="0,0,0,0"/>
+                            FontSize="16" FontWeight="Bold" VerticalAlignment="Bottom" Height="auto" Margin="0,0,0,0" Visibility="Collapsed"/>
                 </Grid>
             </Border>
 

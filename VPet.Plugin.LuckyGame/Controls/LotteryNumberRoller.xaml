@@ -18,15 +18,16 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource DARKPrimaryLighter}"/>
                 <Setter Property="BorderThickness" Value="2"/>
                 <Setter Property="CornerRadius" Value="8"/>
-                <Setter Property="Width" Value="60"/>
-                <Setter Property="Height" Value="80"/>
-                <Setter Property="Margin" Value="5"/>
+                <Setter Property="MaxWidth" Value="60"/>
+                <Setter Property="MaxHeight" Value="80"/>
+                <Setter Property="Margin" Value="3"/>
                 <Setter Property="ClipToBounds" Value="True"/>
             </Style>
 
             <Style x:Key="MainNumberTextStyle" TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}"/>
-                <Setter Property="FontSize" Value="45"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="FontSize" Value="30"/>
                 <Setter Property="FontWeight" Value="Bold"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
@@ -35,7 +36,8 @@
 
             <Style x:Key="SpecialNumberTextStyle" TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{DynamicResource DangerBrush}"/>
-                <Setter Property="FontSize" Value="40"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="FontSize" Value="30"/>
                 <Setter Property="FontWeight" Value="Bold"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
@@ -44,7 +46,8 @@
 
             <Style x:Key="HighlightNumberTextStyle" TargetType="TextBlock">
                 <Setter Property="Foreground" Value="Gold"/>
-                <Setter Property="FontSize" Value="45"/>
+                <Setter Property="Margin" Value="5"/>
+                <Setter Property="FontSize" Value="30"/>
                 <Setter Property="FontWeight" Value="Bold"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
@@ -69,7 +72,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Text="{ll:Str 主号码：}" Foreground="{DynamicResource DARKPrimaryText}" FontSize="24" Margin="20,5" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" FontWeight="Bold"/>
+        <TextBlock Text="{ll:Str 主号码：}" Foreground="{DynamicResource DARKPrimaryText}" FontSize="24" Margin="10,5" Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" FontWeight="Bold"/>
 
         <!-- 6个主号码 -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="0">
@@ -144,7 +147,7 @@
                   Margin="10,0"
                   Grid.Column="1" Grid.Row="1"/>
 
-        <TextBlock Text="{ll:Str 副号码：}" Foreground="{DynamicResource DARKPrimaryText}" FontSize="24" Margin="20,5" VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Column="0" Grid.Row="2" FontWeight="Bold"/>
+        <TextBlock Text="{ll:Str 副号码：}" Foreground="{DynamicResource DARKPrimaryText}" FontSize="24" Margin="10,5" VerticalAlignment="Center" HorizontalAlignment="Left" Grid.Column="0" Grid.Row="2" FontWeight="Bold"/>
 
         <!-- 2个副号码 -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="2">

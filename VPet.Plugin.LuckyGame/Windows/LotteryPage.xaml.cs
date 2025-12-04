@@ -3,8 +3,10 @@ using Panuon.WPF.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using VPet.Plugin.LuckyGame.Controls;
@@ -45,6 +47,10 @@ namespace VPet.Plugin.LuckyGame.Windows
                 NumberRoller.SpecialMaxValue = 9;
                 resluts = Lottery.ResultList2WinCoinDetail(_data.lotteryResult.lotteryResults);
                 NumberRoller.SetFinalNumbers(_data.lotteryResult.lotteryResults.First().WinningNumber.MainNumber, _data.lotteryResult.lotteryResults.First().WinningNumber.DeputyNumber);
+                foreach(var item in _data.lotteryResult.lotteryResults)
+                {
+                    BuyHistoryPanel.Children.Add(FormatPurchaseBlock(item.BuyInfo));
+                }
                 NumberRoller.StartRollingAnimation(2.0);
             }
         }
@@ -54,15 +60,19 @@ namespace VPet.Plugin.LuckyGame.Windows
             PrizeText.Text = "您的中奖金额为： {0} 代币".Translate(resluts.ElementAt(e.NumberIndex));
         }
 
-        private void OnNumberRollingCompleted(object sender, EventArgs e)
+        private async void OnNumberRollingCompleted(object sender, EventArgs e)
         {
             var finalCoins = 0.0;
             var resultString = "";
-            foreach (var item in _data.lotteryResult.lotteryResults) {
-                finalCoins += item.WinCoin;
-                item.WinCoinPay(_data.gtc);
-                resultString = item.WinningNumber.ToString();
-            }
+            await Task.Run(() =>
+            {
+                foreach (var item in _data.lotteryResult.lotteryResults)
+                {
+                    finalCoins += item.WinCoin;
+                    item.WinCoinPay(_data.gtc);
+                    resultString = item.WinningNumber.ToString();
+                }
+            });
             MessageBoxX.Show("开奖结果已公布！\n本次中奖号码为：\n{1}\n您本次共获得代币数为：{0}".Translate(finalCoins, resultString), "提示".Translate());
             _data.lotteryResult.lotteryResults.Clear();
             ReslutBorder.Visibility = Visibility.Collapsed;
@@ -216,5 +226,20 @@ namespace VPet.Plugin.LuckyGame.Windows
             _data.IsShowResult = Reminder.IsChecked.HasValue ? Reminder.IsChecked.Value : false;
         }
 		private void HelpButton_Click(object sender, RoutedEventArgs e) => LuckyGame.OpenHelpPage("lottery.html");
+
+        private TextBlock FormatPurchaseBlock(Lottery.LotteryBuy lotteryBuy)
+        {
+            TextBlock textBlock = new TextBlock();
+            textBlock.TextWrapping = TextWrapping.Wrap;
+            textBlock.Inlines.Add(new Run("号码: "));
+            textBlock.Inlines.Add(new Run(lotteryBuy.lotteryNumber.ToString()) { Foreground = Brushes.LightBlue });
+            textBlock.Inlines.Add(new LineBreak());
+            textBlock.Inlines.Add(new Run("下注代币数: "));
+            textBlock.Inlines.Add(new Run(lotteryBuy.coin.ToString()) { Foreground = Brushes.LightGreen });
+            textBlock.Inlines.Add(new LineBreak());
+            textBlock.Inlines.Add(new Run("代币类型: "));
+            textBlock.Inlines.Add(new Run(lotteryBuy.coinType.ToString()) { Foreground = Brushes.LightYellow });
+            return textBlock;
+        }
 	}
 }
