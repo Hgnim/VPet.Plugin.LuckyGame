@@ -1,0 +1,36 @@
+该模组已开源，请放心食用。
+开源仓库：https://github.com/Hgnim/VPet.Plugin.LuckyGame
+
+[h2] 简介 [/h2]
+
+[i] 试试你今天的运气如何？ [/i]
+
+[h3] ✨ 玩法与功能 [/h3]
+
+[list]
+  [*]💰 [b] 代币兑换（Token Exchange） [/b] - 使用桌宠钱兑换各种代币
+  [*]🎡 [b] 幸运转盘（Lucky Wheel） [/b] - 转动转盘，试试你的运气
+  [*]🎟️ [b] 彩票系统（Lottery） [/b] - 购买彩票，定期开奖，赢取丰厚奖励
+  [*]🎰 [b] 老虎机（Slot Machine） [/b] - [i] 开发计划，敬请期待 [/i]
+  [*]🃏 [b] 二十一点（Blackjack） [/b] - [i] 开发计划，敬请期待 [/i]
+[/list]
+
+[h3] 🌐 多语言支持(Multilingual support) [/h3]
+
+[list]
+  [*]简体中文（zh-CN）
+  [*]繁体中文（zh-Hant）
+  [*]English
+[/list]
+
+发现错误了吗？前往[url=https://github.com/Hgnim/VPet.Plugin.LuckyGame/issues] 项目议题 [/url]汇报你的问题与建议。
+
+[hr][/hr]
+
+[h3] ⚠️ 重要声明 [/h3]
+
+本插件仅供[b] 本地娱乐 [/b]与[b] 学习参考 [/b]使用
+
+详细信息请参阅[url=https://github.com/Hgnim/VPet.Plugin.LuckyGame/blob/main/doc/%E4%BD%BF%E7%94%A8%E6%9D%A1%E6%AC%BE.md#%E7%94%A8%E6%88%B7%E4%BD%BF%E7%94%A8%E6%9D%A1%E6%AC%BE] 使用条款 [/url] [url=https://github.com/Hgnim/VPet.Plugin.LuckyGame/blob/main/doc/%E4%BD%BF%E7%94%A8%E6%9D%A1%E6%AC%BE.md#%E5%85%8D%E8%B4%A3%E5%A3%B0%E6%98%8E] 免责声明 [/url]。
+
+[hr][/hr]
