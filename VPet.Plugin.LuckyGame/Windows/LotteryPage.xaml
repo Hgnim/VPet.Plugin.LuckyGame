@@ -292,6 +292,10 @@
                 </Grid>
             </Border>
 
+            <TextBlock x:Name="CoinBalanceText" Text="🎮 ? 枚" 
+                Foreground="#FFFF00FF" FontSize="18" FontWeight="Bold"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5,0,0,0" Grid.Row="1"/>
+
             <Button x:Name="helpButton" 
                     Width="24" Height="24" ToolTip="帮助" 
                     HorizontalAlignment="Left" Margin="16,0,0,0"

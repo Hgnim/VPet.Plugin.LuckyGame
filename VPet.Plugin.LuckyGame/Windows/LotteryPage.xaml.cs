@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using VPet.Plugin.LuckyGame.Controls;
 using VPet.Plugin.LuckyGame.Core;
 using VPet.Plugin.LuckyGame.Core.Game;
@@ -32,7 +33,12 @@ namespace VPet.Plugin.LuckyGame.Windows
             this.MW = MW;
             InitializeComponent();
             InitializeNumbers();
-        }
+
+			_data.gtc.coin.OnCoinChange += OnCoinChange;
+			_data.gtc.coin.OnDefCoinTypeChange += (type) =>
+				Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => Updata_CoinBalanceText()));
+			Updata_CoinBalanceText();
+		}
 
         private void InitializeNumbers()
         {
@@ -248,6 +254,18 @@ namespace VPet.Plugin.LuckyGame.Windows
             _data.IsShowResult = Reminder.IsChecked.HasValue ? Reminder.IsChecked.Value : false;
         }
 		private void HelpButton_Click(object sender, RoutedEventArgs e) => LuckyGame.OpenHelpPage("lottery.html");
+
+
+		/// <summary>
+		/// 代币更改时触发
+		/// </summary>
+		private void OnCoinChange(GameTokenCoin.Coin.CoinType type, ulong amount, uint rate, double fee) =>
+			// 在UI线程上更新显示
+			Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => Updata_CoinBalanceText()));
+		private void Updata_CoinBalanceText() {
+			CoinBalanceText.Text = "🎮 {0}".Translate(_data.gtc.GetCoinAmount().ToString("N0"));
+			CoinBalanceText.Foreground = ArcadeExchange.GetCoinColor(_data.gtc.coin.DefCoinType);
+		}
 
         private TextBlock FormatPurchaseBlock(Lottery.LotteryBuy lotteryBuy)
         {
