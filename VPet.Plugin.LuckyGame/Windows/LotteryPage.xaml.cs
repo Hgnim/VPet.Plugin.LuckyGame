@@ -3,6 +3,7 @@ using Panuon.WPF.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -59,15 +60,19 @@ namespace VPet.Plugin.LuckyGame.Windows
             PrizeText.Text = "您的中奖金额为： {0} 代币".Translate(resluts.ElementAt(e.NumberIndex));
         }
 
-        private void OnNumberRollingCompleted(object sender, EventArgs e)
+        private async void OnNumberRollingCompleted(object sender, EventArgs e)
         {
             var finalCoins = 0.0;
             var resultString = "";
-            foreach (var item in _data.lotteryResult.lotteryResults) {
-                finalCoins += item.WinCoin;
-                item.WinCoinPay(_data.gtc);
-                resultString = item.WinningNumber.ToString();
-            }
+            await Task.Run(() =>
+            {
+                foreach (var item in _data.lotteryResult.lotteryResults)
+                {
+                    finalCoins += item.WinCoin;
+                    item.WinCoinPay(_data.gtc);
+                    resultString = item.WinningNumber.ToString();
+                }
+            });
             MessageBoxX.Show("开奖结果已公布！\n本次中奖号码为：\n{1}\n您本次共获得代币数为：{0}".Translate(finalCoins, resultString), "提示".Translate());
             _data.lotteryResult.lotteryResults.Clear();
             ReslutBorder.Visibility = Visibility.Collapsed;

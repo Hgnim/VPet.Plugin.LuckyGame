@@ -18,17 +18,24 @@ namespace VPet.Plugin.LuckyGame.Windows
         private IMainWindow MainWindow;
         private Point startPoint;
         private bool isDragging = false;
+        private bool NeedUpdateUI = false;
         internal ArcadeExchange(IMainWindow mainWindow, GameTokenCoin gtc)
         {
             MainWindow = mainWindow;
-            TokenCoin = gtc;
-            gtc.coin.OnCoinChange += (type, amount, rate, fee) =>
+            MainWindow.Main.EventTimer.Elapsed += (s, e) =>
             {
-                // 在UI线程上更新显示
-                Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                if(!NeedUpdateUI) 
+                    return;
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
                     UpdateDisplay();
                 }));
+                NeedUpdateUI = false;
+            };
+            TokenCoin = gtc;
+            gtc.coin.OnCoinChange += (type, amount, rate, fee) =>
+            {
+                NeedUpdateUI = true;
             };
             InitializeComponent();
             InitializeArcade();
