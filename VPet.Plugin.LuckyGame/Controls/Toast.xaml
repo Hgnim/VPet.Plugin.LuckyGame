@@ -4,7 +4,7 @@
 	x:Class="VPet.Plugin.LuckyGame.Controls.Toast"
     Width="Auto" Height="Auto"
     HorizontalAlignment="Left" VerticalAlignment="Top"
-    Opacity="0"
+    Opacity="0" Name="MainWindow" Visibility="Collapsed"
     >
     <UserControl.Resources>
         <ResourceDictionary Source="/VPet-Simulator.Windows.Interface;component/ResourceStyle.xaml" />
