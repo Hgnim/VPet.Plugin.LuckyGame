@@ -1,4 +1,4 @@
-﻿using LinePutScript;
+using LinePutScript;
 using LinePutScript.Localization.WPF;
 using Panuon.WPF;
 using Panuon.WPF.UI;
@@ -66,7 +66,7 @@ namespace VPet.Plugin.LuckyGame
                         for (byte b = 0; b < GameTokenCoin.Coin.CoinKey.Length; b++)
                         {
                             ulong clearCoin = data.gtc.GetCoinAmount((GameTokenCoin.Coin.CoinType)b);
-                            data.gtc.ChangeCoin(
+                            if(data.gtc.ChangeCoin(
                                 clearCoin,
                                 false,
                                 (GameTokenCoin.Coin.CoinType)b,
@@ -78,14 +78,22 @@ namespace VPet.Plugin.LuckyGame
                                     Note = note,
                                 },
                                 true
-                            );
+                            ) == 2) {
+                                //如果为0则打一个占位扣除记录，避免没有记录导致再次启动的时候循环出现数据丢失的逻辑
+                                DataSave.CoinExchangeLog_Insert(new() {
+                                    CoinKey = GameTokenCoin.Coin.CoinKey[b],
+                                    CoinChange = "-0",
+                                    Note = note,
+                                });
+                            }
                         }
                     }
                     if (rr.DbHashPass == false)
                     {//如果哈希验证失败，则只执行插件数据清除
-                        ClearCoin("数据篡改，代币清除");
-                        MessageBoxX.Show("检测到幸运游戏数据被篡改", "错误");//用于测试，后期将润色
-                    }
+						DataSave.DatabaseBackupClearAllData();//数据库被篡改，数据库内容已不可信，清空
+						ClearCoin("数据篡改，代币清除");
+                        MessageBoxX.Show("财富是靠自己争取的，而非篡改。", "LuckyGame".Translate());//检测到幸运游戏数据被篡改
+					}
                     else
                     {
                         if (celcr.haveDiff)
@@ -125,8 +133,8 @@ namespace VPet.Plugin.LuckyGame
                                     Note = "数据异常，金钱回滚",//注意此行不要翻译，在别处有对其文本的判断
                                 });
                             }
-                            MessageBoxX.Show("检测到幸运游戏数据异常", "错误");//用于测试，后期将润色
-                        }
+                            MessageBoxX.Show("有些事是注定发生的，并不能通过回档而回到过去。", "LuckyGame".Translate());//检测到幸运游戏数据异常
+						}
                         else if (!celcr.haveData || !rr.HaveDbFile)
                         {//数据库中是否存在数据
                             /*gtc.coin.CoinBlack = 0;
@@ -134,9 +142,11 @@ namespace VPet.Plugin.LuckyGame
                             gtc.coin.CoinGreen = 0;
                             gtc.coin.CoinRed = 0;
                             gtc.coin.CoinWhite = 0;*/
+                            if (!rr.HaveDbFile)
+                                DataSave.DatabaseBackupClearAllData();//如果数据库文件有丢失情况，则清除所有数据库
                             ClearCoin("数据丢失，代币清除");
-                            MessageBoxX.Show("检测到幸运游戏数据丢失", "错误");//用于测试，后期将润色
-                        }
+                            MessageBoxX.Show("你的代币资产随着你的操作而被丢弃。", "LuckyGame".Translate());//检测到幸运游戏数据丢失
+						}
                     }
                 }
             }

@@ -72,11 +72,12 @@ namespace VPet.Plugin.LuckyGame.Core {
 			}
 			bool? dbHashCheck = null;
 			bool haveDbFile = File.Exists(databaseBackupFileName) && File.Exists(databaseBackupHashFileName);
-			//if (first)//不对EnsureDatabaseBackup();函数进行判断，避免后续新增表的时候不执行
+
+			if (!first && haveDbFile)
+				dbHashCheck = DatabaseHash_Check();//在所有数据库操作前检查哈希值
+			//if (first)//不对EnsureDatabaseBackup();函数进行首次启动执行的判断，避免后续新增表的时候不执行
 			EnsureDatabaseBackup();
 			DatabaseHash_StreamInit();
-			if (!first && haveDbFile) 
-				dbHashCheck = DatabaseHash_Check();
 
 			gtcArg = new() { 
 				coins =new ulong[GameTokenCoin.Coin.CoinKey.Length],
@@ -137,12 +138,19 @@ namespace VPet.Plugin.LuckyGame.Core {
 								Coin TEXT NOT NULL,
 								CoinType INTEGER NOT NULL
 							);
-						"/*将哈希值存入数据库的方案，失败。暂时保留备用
-							CREATE TABLE IF NOT EXISTS Data_TextValue (
-								Id TEXT PRIMARY KEY,
-								Value TEXT
-							)  WITHOUT ROWID;
-						"*/
+
+							CREATE TRIGGER IF NOT EXISTS CoinExchangeLog_AutoRemove
+							AFTER INSERT ON CoinExchangeLog
+							FOR EACH ROW
+							BEGIN
+							    DELETE FROM CoinExchangeLog 
+							    WHERE Id IN (
+							        SELECT Id FROM CoinExchangeLog 
+							        ORDER BY Time DESC 
+							        LIMIT -1 OFFSET 50000
+							    );
+							END;
+						"
 					, sql))
 					{
 						command.ExecuteNonQuery();
@@ -154,81 +162,13 @@ namespace VPet.Plugin.LuckyGame.Core {
 				MessageBoxX.Show("数据初始化失败！\n{0}".Translate(ex.Message), "错误".Translate());
 			}
         }
-		/*将哈希值存入数据库的方案，失败。暂时保留备用
-		private struct DatabaseHash {
-			/// <summary>
-			/// 获取数据库的哈希值
-			/// </summary>
-			/// <returns></returns>
-			private static string GetDatabaseBackupHash() {
-				using (SHA256 sha256 = SHA256.Create()) {
-					using (FileStream stream = File.OpenRead(databaseBackupFileName)) {
-						byte[] hash = sha256.ComputeHash(stream);
-						return BitConverter.ToString(hash).Replace("-", "");
-					}
-				}
-			}
-			private static void WriteDb(string value = "ReadAndWrite") {
-				using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
-					sql.Open();
-					using (var transaction = sql.BeginTransaction()) {
-						using (SQLiteCommand command = new(
-						@$"
-						INSERT INTO Data_TextValue (Id, Value)
-							VALUES ('Hash', '{value}')
-						ON CONFLICT(Id) DO 
-							UPDATE SET Value = '{value}';
-						",
-						sql, transaction)) {
-							command.ExecuteNonQuery();
-						}
-						transaction.Commit();//等待其确保写入完成
-					}
-				}
-			}
-			private static string ReadDb() {
-				using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
-					sql.Open();
-
-					using (SQLiteCommand command = new(
-						@$"
-					SELECT Value FROM Data_TextValue
-						WHERE Id = 'Hash';
-					"
-					, sql)) {
-						using (SQLiteDataReader reader = command.ExecuteReader()) {
-							return reader.Read() 
-								? reader["Value"].ToString() 
-								: null;
-						}
-					}
-				}
-			}
-			internal static void DatabaseHash_Save() {
-				string hash;
-				WriteDb();//空写以写入可控的哈希值
-				Thread.Sleep(1000);
-				hash = GetDatabaseBackupHash();
-				Thread.Sleep(1000);
-				WriteDb(hash);
-			}
-			internal static bool DatabaseHash_Check() {
-				string readHash, hash;
-				readHash = ReadDb();
-				WriteDb();//空写以还原至获取哈希值时的状态
-				hash = GetDatabaseBackupHash();
-				MessageBox.Show(readHash + '\n' + hash);
-				return readHash == hash;
-			}
-		}
-		*/
 		/// <summary>
 		/// 获取数据库的哈希值
 		/// </summary>
 		/// <returns></returns>
 		private static byte[] GetDatabaseBackupHash() {
 			while (true) {
-				try {
+				try {//未正常退出游戏的情况下FileStream有几率报文件正在被使用的错误，使用循环直到成功读取为止
 					using (SHA256 sha256 = SHA256.Create()) {
 						using (FileStream stream = new(databaseBackupFileName, FileMode.Open, FileAccess.Read)) {
 							return sha256.ComputeHash(stream);
@@ -330,28 +270,59 @@ namespace VPet.Plugin.LuckyGame.Core {
 
 		}
 		/// <summary>
+		/// 总共需要执行的任务数
+		/// </summary>
+		private static uint coinExchangeLogInsert_allTaskNum = 0;
+		/// <summary>
+		/// 当前已执行的任务数
+		/// </summary>
+		private static uint coinExchangeLogInsert_runTaskNum = 0;
+		/// <summary>
 		/// 代币更改日志插入
 		/// </summary>
 		/// <param name="cel">日志信息</param>
-		internal static async void CoinExchangeLog_Insert(CoinExchangeLog cel) => await Task.Run(() => {
-			if (cel.CoinKey != null && cel.CoinChange != null) {
-				if (!cel.DisThisTime) {
-					using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
-						sql.Open();
-						using (SQLiteCommand command = new(
-							@$"
+		internal static async void CoinExchangeLog_Insert(CoinExchangeLog cel) {
+			{//采用ID排队执行制，避免异步执行导致数据库锁死报错
+				uint taskId = coinExchangeLogInsert_allTaskNum++;
+				await Task.Run(() => {
+					while (taskId > coinExchangeLogInsert_runTaskNum) Thread.Sleep(2);//等待，直到任务执行ID排到当前任务的ID
+				});
+			}
+			await Task.Run(() => {
+				if (cel.CoinKey != null && cel.CoinChange != null) {
+					if (!cel.DisThisTime) {
+						byte tryNum = 0;
+						bool pass = false;
+						while (tryNum < 100 && !pass) {//出现错误最多尝试100次
+							try {
+								using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
+									sql.Open();
+									using (SQLiteTransaction transaction = sql.BeginTransaction()) {
+										using (SQLiteCommand command = new(
+										@$"
 						INSERT INTO CoinExchangeLog (SaveTag, Time, CoinKey, CoinChange, MoneyChange, Note) 
 								VALUES ('{cel.SaveTag}', '{cel.Time}', '{cel.CoinKey}', '{cel.CoinChange}', '{cel.MoneyChange}', '{cel.Note}');
 						"
-						, sql)) {
-							command.ExecuteNonQuery();
+									, sql, transaction)) {
+											command.ExecuteNonQuery();
+										}
+										transaction.Commit();//等待其确保写入完成
+									}
+								}
+							} catch { tryNum++;Thread.Sleep(1); }
+							pass = true;
 						}
 					}
-					DatabaseHash_Save();
 				}
+				else throw new Exception("CoinExchangeLog_Insert函数中有关键参数为null");
+			});
+			if (++coinExchangeLogInsert_runTaskNum >= coinExchangeLogInsert_allTaskNum) {
+				/*coinExchangeLogInsert_allTaskNum = 0;
+				coinExchangeLogInsert_runTaskNum = 0;*///不进行ID重置，避免并发导致不可预料的问题
+				if (!cel.DisThisTime)
+					DatabaseHash_Save();
 			}
-			else throw new Exception("CoinExchangeLog_Insert函数中有关键参数为null");
-		});
+		}
 		internal class CoinExchangeLog_CheckResult {
 			/// <summary>
 			/// 检查是否有差异
@@ -500,6 +471,23 @@ namespace VPet.Plugin.LuckyGame.Core {
 				}
 			}
 			return buys;
+		}
+
+		/// <summary>
+		/// 清除数据库所有数据
+		/// </summary>
+		internal static void DatabaseBackupClearAllData() {
+			using (SQLiteConnection sql = new(databaseBackupConnectStr)) {
+				sql.Open();
+				using (SQLiteCommand command = new(
+					@$"
+						DELETE FROM CoinExchangeLog;
+						DELETE FROM LotteryHave;
+						"
+				, sql)) {
+					command.ExecuteNonQuery();
+				}
+			}
 		}
 	}
 }
