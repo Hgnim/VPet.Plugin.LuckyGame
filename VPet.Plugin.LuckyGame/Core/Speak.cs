@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinePutScript.Localization.WPF;
+using System;
 using VPet_Simulator.Windows.Interface;
 
 namespace VPet.Plugin.LuckyGame.Core {
@@ -49,7 +50,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		internal void DoSpeak(IMainWindow MW, SpeakRandomWeightOption srwo, SayType type) {
 			void say(string text) {
 				if (text != null)
-					MW.Main.Say(text);
+					MW.Main.Say(text.Translate());
 			}
 			bool ranBack(byte weight) {
 				Random ran = new();

@@ -195,10 +195,6 @@ namespace VPet.Plugin.LuckyGame.Windows
             {
                 return $"{sign}{(absValue / 1_000000):F1}M";
             }
-            else if (absValue >= 10000) // 万（中文习惯）
-            {
-                return $"{sign}{(absValue / 10000):F1}万";
-            }
             else if (absValue >= 1000) // 千
             {
                 return $"{sign}{(absValue / 1000):F1}K";

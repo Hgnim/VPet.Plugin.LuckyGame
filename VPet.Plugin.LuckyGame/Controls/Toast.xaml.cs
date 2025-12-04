@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LinePutScript.Localization.WPF;
+using System;
 using System.Printing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ namespace VPet.Plugin.LuckyGame.Controls {
 				IsShowing = true;
 				time ??= TimeSpan.FromSeconds(2);
 				fadeTime ??= TimeSpan.FromMilliseconds(300);
-				MsgText.Text = message;
+				MsgText.Text = message.Translate();
 
 				FadeIn((TimeSpan)fadeTime, maxOpacity);
 				try
