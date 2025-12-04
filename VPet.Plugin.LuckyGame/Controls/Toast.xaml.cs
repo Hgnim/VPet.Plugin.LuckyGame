@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Printing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -6,9 +7,17 @@ using System.Windows.Media.Animation;
 
 namespace VPet.Plugin.LuckyGame.Controls {
 	public partial class Toast : UserControl{
-		public Toast() {
+		private bool IsShowing = false;
+		private bool AllowShow = true;
+		private Timer UIUpdateTimer;
+		private CancellationTokenSource cts = new CancellationTokenSource();
+        public Toast() {
 			InitializeComponent();
-		}
+			UIUpdateTimer = new Timer((e) =>
+			{
+				if(AllowShow == false) AllowShow = true;
+            },null,0,100);
+        }
 
 		/// <summary>
 		/// 执行吐司框
@@ -18,15 +27,28 @@ namespace VPet.Plugin.LuckyGame.Controls {
 		/// <param name="time">吐司框持续显示的时间</param>
 		/// <param name="fadeTime">淡入淡出动画时间</param>
 		public async void Show(string message,double maxOpacity=0.8, TimeSpan? time = null, TimeSpan? fadeTime = null) {
-			time ??= TimeSpan.FromSeconds(2);
-			fadeTime ??= TimeSpan.FromMilliseconds(300);
-			MsgText.Text = message;
+			await Dispatcher.BeginInvoke(async () =>
+			{
+				if (!AllowShow) return;
+				AllowShow = false;
+				if (IsShowing == true)
+				{
+					cts.Cancel();
+                }
+				IsShowing = true;
+				time ??= TimeSpan.FromSeconds(2);
+				fadeTime ??= TimeSpan.FromMilliseconds(300);
+				MsgText.Text = message;
 
-			FadeIn((TimeSpan)fadeTime,maxOpacity);
-			await Task.Run(() =>
-				Thread.Sleep((TimeSpan)time)
-			);
-			FadeOut((TimeSpan)fadeTime,maxOpacity);
+				FadeIn((TimeSpan)fadeTime, maxOpacity);
+				try
+				{
+					await Task.Delay((TimeSpan)time, cts.Token);
+				}
+				catch (TaskCanceledException) { }
+                FadeOut((TimeSpan)fadeTime, maxOpacity);
+				IsShowing = false;
+            });
 		}
 
 		private uint showNum = 0;//用于判断多次执行

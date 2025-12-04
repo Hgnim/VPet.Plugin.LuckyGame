@@ -7,8 +7,8 @@
         mc:Ignorable="d"
         xmlns:pu="clr-namespace:Panuon.WPF.UI;assembly=Panuon.WPF.UI"
         xmlns:controls="clr-namespace:VPet.Plugin.LuckyGame.Controls"
-        MinHeight="500" MinWidth="700" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight"
-        Background="Transparent" AllowsTransparency="True" WindowStyle="None"
+        MinHeight="500" MinWidth="600" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight"
+        Background="Transparent" AllowsTransparency="True" WindowStyle="None" Name="MainWindow"
         Title="{ll:Str 'Lottery'}" >
     <Window.Resources>
         <ResourceDictionary Source="/VPet-Simulator.Windows.Interface;component/ResourceStyle.xaml" />
@@ -239,11 +239,11 @@
             <Border Grid.Row="1" Margin="20" Background="{DynamicResource DARKPrimary}"
                 CornerRadius="10" BorderBrush="{DynamicResource DARKPrimaryLighter}" 
                 BorderThickness="2" Padding="20" Name="ReslutBorder" Visibility="Collapsed">
-                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="760" Height="450">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height=".4*"/>
+                        <RowDefinition Height=".5*"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height=".5*"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
