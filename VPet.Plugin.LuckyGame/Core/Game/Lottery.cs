@@ -273,25 +273,39 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 				ulong[] winCoDet = new ulong[8];
 				{
 					double[] winCoDet_doub = new double[8];
+#pragma warning disable IDE0045
 					for (byte b = 0; b < 8; b++) {
 						byte winN = 0;
 						if (b < 6) {
 							for (byte b2 = 0; b2 < b+1; b2++) {
-								if (b2 < 6) 
-									if (mainWinLoc[b2]) winN++;
+								if (mainWinLoc[b2]) winN++;
 							}
-							winCoDet_doub[b] = Math.Pow(winN, item.coin);
+							if (mainWinLoc[b])
+								winCoDet_doub[b] =
+									b - 1 >= 0
+									? winCoDet_doub[b - 1]
+									: 0
+									+
+									item.coin * Math.Pow(8, winN);
+							else
+								winCoDet_doub[b] = 
+									b - 1 >= 0
+									? winCoDet_doub[b - 1]
+									: 0;
 						}
 						else {
 							for(byte b2 = 0; b2 < b-6+1; b2++) {
-								if (b2 < 2)
-									if (deputyWinLoc[b2]) winN++;
+								if (deputyWinLoc[b2]) winN++;
 							}
-							winCoDet_doub[b] = winCoDet_doub[6-1] + Math.Pow(1.5, winN);
+							if (deputyWinLoc[b - 6])
+								winCoDet_doub[b] = winCoDet_doub[b - 1] + item.coin * winN;
+							else
+								winCoDet_doub[b] = winCoDet_doub[b - 1];
 							if (b == 8 - 1 && winN == 0) winCoDet_doub[b] = 0;//如果副号码没有赢，则主号码赢得的不算数
 						}
 					}
-					for(byte b = 0; b < 8; b++) {
+#pragma warning restore IDE0045
+					for (byte b = 0; b < 8; b++) {
 						winCoDet[b] = (ulong)Math.Round(winCoDet_doub[b]);
 					}
 				}
