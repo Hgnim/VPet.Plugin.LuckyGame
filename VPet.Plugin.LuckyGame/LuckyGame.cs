@@ -235,7 +235,6 @@ namespace VPet.Plugin.LuckyGame
 				if (data.lottery.lotteryHave.Count > 0) {
 					data.IsShowing = true;
 					data.lotteryResult.lotteryResults = Lottery.Start(data.lottery.lotteryHave);
-					data.lottery.lotteryHave.Clear();
 					if (lotteryWindow != null && lotteryWindow.IsVisible) {
 						lotteryWindow.Dispatcher.Invoke(() => {
 							lotteryWindow.ShowResultAnimation();

@@ -7,9 +7,9 @@
 		<ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
-		<AssemblyVersion>1.0.0.1205</AssemblyVersion>
-		<FileVersion>1.0.0.1205</FileVersion>
-		<VersionPrefix>1.0.0.20251205</VersionPrefix>
+		<AssemblyVersion>1.0.1.1216</AssemblyVersion>
+		<FileVersion>1.0.1.1216</FileVersion>
+		<VersionPrefix>1.0.1.20251216</VersionPrefix>
 		<VersionSuffix></VersionSuffix>
 
 		<Authors>Hgnim, Evian</Authors>

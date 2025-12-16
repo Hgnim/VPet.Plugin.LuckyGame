@@ -26,7 +26,6 @@ namespace VPet.Plugin.LuckyGame.Windows
         private ulong coinNum = 2; 
         public int CoinNumValue { set => coinNum = Convert.ToUInt64(value); get => Convert.ToInt32(coinNum); }
         private List<ulong> resluts = [];
-        private List<TextBlock> PurchaseHistory = [];
         internal LotteryPage(Data data,IMainWindow MW)
         {
             this._data = data;
@@ -59,7 +58,11 @@ namespace VPet.Plugin.LuckyGame.Windows
                 NumberRoller.SpecialMaxValue = 9;
                 resluts = Lottery.ResultList2WinCoinDetail(_data.lotteryResult.lotteryResults);
                 NumberRoller.SetFinalNumbers(_data.lotteryResult.lotteryResults.First().WinningNumber.MainNumber, _data.lotteryResult.lotteryResults.First().WinningNumber.DeputyNumber);
-                foreach(var item in PurchaseHistory)
+				List<TextBlock> purchaseHistory = [];
+                foreach (Lottery.LotteryBuy buy in _data.lottery.lotteryHave) {
+                    purchaseHistory.Add(FormatPurchaseBlock(buy));
+                }
+				foreach (var item in purchaseHistory)
                 {
                     BuyHistoryPanel.Children.Add(item);
                 }
@@ -100,8 +103,8 @@ namespace VPet.Plugin.LuckyGame.Windows
 							CoinType = ct ?? _data.gtc.coin.DefCoinType,
 						}
 					);
+            _data.lottery.lotteryHave.Clear();
 			_data.lotteryResult.lotteryResults.Clear();
-            PurchaseHistory.Clear();
             BuyHistoryPanel.Children.Clear();
             NumberRoller.RollingCompleted -= OnNumberRollingCompleted;
             NumberRoller.NumberStopped -= OnNumberStopped;
@@ -200,7 +203,6 @@ namespace VPet.Plugin.LuckyGame.Windows
                     return;
             }
             _data.lottery.lotteryHave.Add(buy);
-            PurchaseHistory.Add(FormatPurchaseBlock(buy));
             Toast.Show("购买彩票成功！\n您的下注代币数为{0}\n您下注的号码为:{1}".Translate(coinNum,userNumbers.ToString()));
             if (AutoClearByBuy.IsChecked == true) ClearAllNumbers_Click(null, null);
         }
