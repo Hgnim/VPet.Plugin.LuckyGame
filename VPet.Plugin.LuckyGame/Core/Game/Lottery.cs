@@ -122,10 +122,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 			/// <returns>返回值与gtc.ChangeCoin函数一致</returns>
 			internal byte Pay(GameTokenCoin gtc) {
 				coinType ??= gtc.coin.DefCoinType;
-				byte res = gtc.ChangeCoin(coin, false, coinType, cel: new() {
-					Note = "彩票购买",
-					OnlyNote = true
-				});
+				byte res = gtc.ChangeCoin(coin, false, coinType);
 				bought = res == 0;
 				return res;
 			}
@@ -183,10 +180,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 			/// <param name="gtc">游戏代币数据</param>
 			/// <returns>返回值与gtc.ChangeCoin函数一致</returns>
 			internal byte WinCoinPay(GameTokenCoin gtc) => 
-				gtc.ChangeCoin(WinCoin, true, BuyInfo.coinType, cel: new() {
-					Note = "彩票获奖",
-					OnlyNote = true
-				});
+				gtc.ChangeCoin(WinCoin, true, BuyInfo.coinType);
 		}
 
 		public static List<ulong> ResultList2WinCoinDetail(List<LotteryResult> list)
@@ -210,7 +204,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		internal static List<LotteryResult> Start(List<LotteryBuy> buy) {
 			byte[] winMainNum, winDepuNum;
 			{
-				long seed = DataSave.TimeData;
+				long seed = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 				Random ran = new();
 				void action(byte num) {
 					if (Convert.ToBoolean(ran.Next(0, 2))) {

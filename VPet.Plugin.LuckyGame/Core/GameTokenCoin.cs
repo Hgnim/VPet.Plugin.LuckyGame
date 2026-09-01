@@ -243,13 +243,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 						double moneyMinus = GetExchangeNeedMoney(value, cType);
 						if (!(MW.Core.Save.Money < moneyMinus)) {
 							MW.Core.Save.Money -= moneyMinus;
-							ChangeCoin(value, true, cType, new() {
-								SaveTag = DataSave.ThisSaveTag,
-								CoinKey = Coin.CoinKey[(int)cType],
-								CoinChange = $"+{value}",
-								MoneyChange = $"-{moneyMinus}",
-								Note = "兑换代币",
-							});
+							ChangeCoin(value, true, cType);
 							ret = 0;
 						}
 						else
@@ -257,13 +251,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 					}
 					else {
 						double moneyAdd = GetExchangeGetMoney(value, cType);
-						if (ChangeCoin(value, false, cType, new(){
-							SaveTag = DataSave.ThisSaveTag,
-							CoinKey = Coin.CoinKey[(int)cType],
-							CoinChange = $"-{value}",
-							MoneyChange = $"+{moneyAdd}",
-							Note = "回收代币",
-						}) == 0) {
+						if (ChangeCoin(value, false, cType) == 0) {
 							MW.Core.Save.Money += moneyAdd;
 							ret = 0;
 						}
@@ -388,7 +376,6 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 代币类型<br/>
 		/// 留空或为null则使用默认值
 		/// </param>
-		/// <param name="cel">用于编写日志</param>
 		/// <param name="force">强制扣取代币，不管其是否不够扣取</param>
 		/// <returns>
 		/// 返回值：<br/>
@@ -398,7 +385,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 		/// 3：代币不足<br/>
 		/// </returns>
 #nullable enable
-		internal byte ChangeCoin(ulong value, bool isAdd, Coin.CoinType? cType=null, DataSave.CoinExchangeLog? cel=null, bool force=false) {
+		internal byte ChangeCoin(ulong value, bool isAdd, Coin.CoinType? cType=null, bool force=false) {
 #nullable disable
 			cType ??= coin.DefCoinType;
 			byte ret = 1;
@@ -452,24 +439,6 @@ namespace VPet.Plugin.LuckyGame.Core {
 					if (ret == 0)
 						coin.CoinWhite = output;
 					break;
-			}
-			if (ret == 0) {
-				cel ??= new() {
-					SaveTag = DataSave.ThisSaveTag,
-					CoinKey = Coin.CoinKey[(int)cType],
-					CoinChange = $"{(isAdd ? '+' : '-')}{value}",
-					Note = "未知代币变动（可能的漏洞）",
-				};
-				if (cel.OnlyNote) {
-					string note = cel.Note;
-					cel = new() {
-						SaveTag = DataSave.ThisSaveTag,
-						CoinKey = Coin.CoinKey[(int)cType],
-						CoinChange = $"{(isAdd ? '+' : '-')}{value}",
-						Note = note
-					};
-				}
-				DataSave.CoinExchangeLog_Insert(cel);
 			}
 			return ret;
 		}

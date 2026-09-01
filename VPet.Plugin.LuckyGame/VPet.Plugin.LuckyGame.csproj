@@ -25,7 +25,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
 		<PackageReference Include="VPet-Simulator.Core" Version="1.1.0.52">
 			<ExcludeAssets>runtime;native</ExcludeAssets>
 		</PackageReference>
@@ -89,31 +88,15 @@
 		</ItemGroup>
 
 		<!--检查并创建所需文件夹-->
-		<MakeDir 
-			Directories="%(FilesToDownload.DestinationFolder)" 
-			Condition="!Exists('%(FilesToDownload.DestinationFolder)')" 
-			/>
+		<MakeDir Directories="%(FilesToDownload.DestinationFolder)" Condition="!Exists('%(FilesToDownload.DestinationFolder)')" />
 
-		<Message 
-			Text="开始下载js模块: %(FilesToDownload.Url) -> %(FilesToDownload.DestinationFolder)\%(FilesToDownload.Identity)" 
-			Condition="!Exists('%(FilesToDownload.DestinationFolder)\%(FilesToDownload.Identity)')" 
-			Importance="high" 
-			/>
+		<Message Text="开始下载js模块: %(FilesToDownload.Url) -&gt; %(FilesToDownload.DestinationFolder)\%(FilesToDownload.Identity)" Condition="!Exists('%(FilesToDownload.DestinationFolder)\%(FilesToDownload.Identity)')" Importance="high" />
 		
 		<!--下载文件，且当文件存在时不会执行下载。如需更新，删除本地文件并构建即可-->
-		<DownloadFile 
-			SourceUrl="%(FilesToDownload.Url)" 
-			DestinationFolder="%(FilesToDownload.DestinationFolder)" 
-			DestinationFileName="%(FilesToDownload.Identity)" 
-			Condition="!Exists('%(FilesToDownload.DestinationFolder)\%(FilesToDownload.Identity)')" 
-			SkipUnchangedFiles="true">
+		<DownloadFile SourceUrl="%(FilesToDownload.Url)" DestinationFolder="%(FilesToDownload.DestinationFolder)" DestinationFileName="%(FilesToDownload.Identity)" Condition="!Exists('%(FilesToDownload.DestinationFolder)\%(FilesToDownload.Identity)')" SkipUnchangedFiles="true">
 			<Output TaskParameter="DownloadedFile" ItemName="Content" />
 		</DownloadFile>
 		
-		<Message 
-			Text="js模块存在: %(FilesToDownload.DestinationFolder)\%(FilesToDownload.Identity)" 
-			Condition="Exists('%(FilesToDownload.DestinationFolder)\%(FilesToDownload.Identity)')" 
-			Importance="high" 
-			/>
+		<Message Text="js模块存在: %(FilesToDownload.DestinationFolder)\%(FilesToDownload.Identity)" Condition="Exists('%(FilesToDownload.DestinationFolder)\%(FilesToDownload.Identity)')" Importance="high" />
 	</Target>
 </Project>

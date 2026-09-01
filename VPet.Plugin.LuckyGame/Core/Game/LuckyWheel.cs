@@ -86,11 +86,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		internal byte PlaceCoin(LuckyWheelBuy lwb,GameTokenCoin gtc)
 		{
             lwb.CoinType ??= gtc.coin.DefCoinType;
-            return gtc.ChangeCoin(lwb.Coin, false, lwb.CoinType, cel: new()
-            {
-                Note = "幸运转盘购买",
-                OnlyNote = true
-            });
+            return gtc.ChangeCoin(lwb.Coin, false, lwb.CoinType);
         }
 		/// <summary>
 		/// 开始转盘
@@ -148,10 +144,7 @@ namespace VPet.Plugin.LuckyGame.Core.Game {
 		/// <returns>返回赢得的代币数</returns>
 		internal static ulong WinCoin(ushort stopPlace,LuckyWheelResult lwr, GameTokenCoin gtc = null) {
 			if (stopPlace == lwr.BuyInfo.Place) {
-				gtc?.ChangeCoin(lwr.IfWinCoin, true, lwr.BuyInfo.CoinType, cel: new() {
-					Note = "幸运转盘获奖",
-					OnlyNote = true
-				});
+				gtc?.ChangeCoin(lwr.IfWinCoin, true, lwr.BuyInfo.CoinType);
 				return lwr.IfWinCoin;
 			}
 			else {
