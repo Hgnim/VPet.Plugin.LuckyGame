@@ -80,7 +80,7 @@ namespace VPet.Plugin.LuckyGame.Core {
 				}
 				lotNum = lotNum[..^1];
 
-				saveData += $"{lotNum}&{lb.coin}&{lb.coinType}";
+				saveData += $"{lotNum}&{lb.coin}&{(int)lb.coinType}";
 			}
 			MW.GameSavesData[mainKey]["LotteryHave"].SetString(saveData);
 		}
@@ -90,26 +90,28 @@ namespace VPet.Plugin.LuckyGame.Core {
 			foreach(string sData in strDatas) {
 				string[] lbData = sData.Split('&');
 
-				Lottery.LotteryBuy buy = new();
-				{
-					List<byte> mainNum = [];
-					List<byte> depuNum = [];
-					string ln = lbData[0];
-					foreach (string n in ln.Split(';')[0].Split(',')) {
-						mainNum.Add(Convert.ToByte(n));
+				if (lbData.Length == 3) {
+					Lottery.LotteryBuy buy = new();
+					{
+						List<byte> mainNum = [];
+						List<byte> depuNum = [];
+						string ln = lbData[0];
+						foreach (string n in ln.Split(';')[0].Split(',')) {
+							mainNum.Add(Convert.ToByte(n));
+						}
+						foreach (string n in ln.Split(';')[1].Split(',')) {
+							depuNum.Add(Convert.ToByte(n));
+						}
+						buy.lotteryNumber = new() {
+							MainNumber = [.. mainNum],
+							DeputyNumber = [.. depuNum]
+						};
 					}
-					foreach (string n in ln.Split(';')[1].Split(',')) {
-						depuNum.Add(Convert.ToByte(n));
-					}
-					buy.lotteryNumber = new() {
-						MainNumber = [.. mainNum],
-						DeputyNumber = [.. depuNum]
-					};
-				}
-				buy.coin = Convert.ToUInt64(lbData[1]);
-				buy.coinType = (GameTokenCoin.Coin.CoinType)Convert.ToInt32(lbData[2]);
+					buy.coin = Convert.ToUInt64(lbData[1]);
+					buy.coinType = (GameTokenCoin.Coin.CoinType)Convert.ToInt32(lbData[2]);
 
-				buys.Add(buy);
+					buys.Add(buy);
+				}
 			}
 			return buys;
 		}

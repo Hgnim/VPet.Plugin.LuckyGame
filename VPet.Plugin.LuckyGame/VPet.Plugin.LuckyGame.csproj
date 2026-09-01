@@ -25,17 +25,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="VPet-Simulator.Core" Version="1.1.0.52">
-			<ExcludeAssets>runtime;native</ExcludeAssets>
+		<PackageReference Include="VPet-Simulator.Core" Version="1.1.0.66">
+			<ExcludeAssets>runtime</ExcludeAssets><!--不复制到输出目录-->
 		</PackageReference>
-		<PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.52">
-			<ExcludeAssets>runtime;native</ExcludeAssets>
+		<PackageReference Include="VPet-Simulator.Windows.Interface" Version="1.1.0.66">
+			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
 		<PackageReference Include="LinePutScript" Version="1.11.9">
-			<ExcludeAssets>runtime;native</ExcludeAssets>
+			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
 		<PackageReference Include="LinePutScript.Localization.WPF" Version="1.0.7">
-			<ExcludeAssets>runtime;native</ExcludeAssets>
+			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
 	</ItemGroup>
 
@@ -46,14 +46,14 @@
 	</ItemGroup>
 
 	<!--在输出后只保留win-x64和win-x86的依赖-->
-	<Target Name="RuntimeClear" AfterTargets="AfterBuild">	
+	<!--<Target Name="RuntimeClear" AfterTargets="AfterBuild">	
 		<Message Text="开始清理不需要的runtime..." Importance="high" />
 
 		<RemoveDir Directories="$(OutputPath)/runtimes/linux-x64" />
 		<RemoveDir Directories="$(OutputPath)/runtimes/osx-x64" />
 
 		<Message Text="runtime清理完成" Importance="high" />
-	</Target>
+	</Target>-->
 	<!--在Release编译时清理无用的输出文件-->
 	<!--<Target Name="RemoveOtherFile" AfterTargets="AfterBuild" Condition="'$(Configuration)'=='Release'">
 		<Message Text="当前为Release模式，开始清理无用的输出文件..." Importance="high" />
